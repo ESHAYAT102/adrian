@@ -89,6 +89,7 @@ export default function RepositoryTabs({
           <button
             onClick={() => handleTabClick("code")}
             className={tabLinkClass(activeTab === "code")}
+            data-repo-tab
             data-repo-tab-code
           >
             <Code className="size-4" />
@@ -97,6 +98,7 @@ export default function RepositoryTabs({
           <button
             onClick={() => handleTabClick("commits")}
             className={tabLinkClass(activeTab === "commits")}
+            data-repo-tab
             data-repo-tab-commits
           >
             <GitCommitHorizontal className="size-4" />
@@ -106,16 +108,18 @@ export default function RepositoryTabs({
           <button
             onClick={() => handleTabClick("issues")}
             className={tabLinkClass(activeTab === "issues")}
+            data-repo-tab
             data-repo-tab-issues
           >
             <CircleDot className="size-4" />
             Issues
             <span className="text-xs text-muted-foreground">{issueCount}</span>
           </button>
-          {(hasDiscussions || canManageRepository) && (
+          {hasDiscussions && (
             <button
               onClick={() => handleTabClick("discussions")}
               className={tabLinkClass(activeTab === "discussions")}
+              data-repo-tab
               data-repo-tab-discussions
             >
               <MessageSquare className="size-4" />
@@ -128,6 +132,7 @@ export default function RepositoryTabs({
           <button
             onClick={() => handleTabClick("pulls")}
             className={tabLinkClass(activeTab === "pulls")}
+            data-repo-tab
             data-repo-tab-pulls
           >
             <GitPullRequest className="size-4" />
@@ -139,6 +144,7 @@ export default function RepositoryTabs({
           <button
             onClick={() => handleTabClick("releases")}
             className={tabLinkClass(activeTab === "releases")}
+            data-repo-tab
             data-repo-tab-releases
           >
             <Tag className="size-4" />
@@ -153,6 +159,7 @@ export default function RepositoryTabs({
             <button
               onClick={() => handleTabClick("settings")}
               className={tabLinkClass(activeTab === "settings")}
+              data-repo-tab
               data-repo-tab-settings
             >
               <Settings className="size-4" />

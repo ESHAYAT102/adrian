@@ -1,21 +1,25 @@
-import { DotmSquare15 } from "@/components/ui/dotm-square-15"
 import { cn } from "@/lib/utils"
 
-export default function Loader({
-  className,
-  size = 18,
-}: {
-  className?: string
-  size?: number
-}) {
+const frames = ["⣏⠀⣹", "⢾⣉⡷", "⠰⣿⠆", "⠀⠶⠀", "⡁⠀⢈"]
+
+export default function Loader({ className }: { className?: string }) {
   return (
-    <DotmSquare15
-      className={cn("inline-flex align-middle text-current", className)}
-      size={size}
-      dotSize={2.5}
-      speed={1.1}
-      animated
-      ariaLabel="Loading"
-    />
+    <span
+      className={cn(
+        "relative mr-2 inline-grid min-w-[3ch] scale-110 place-items-center leading-none whitespace-pre select-none",
+        className
+      )}
+      aria-label="Loading"
+    >
+      {frames.map((frame, index) => (
+        <span
+          key={frame}
+          className="loader-frame col-start-1 row-start-1"
+          style={{ ["--loader-index" as string]: index }}
+        >
+          {frame}
+        </span>
+      ))}
+    </span>
   )
 }

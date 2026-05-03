@@ -827,6 +827,24 @@
   }
 }
 
+@keyframes loader-frame-cycle {
+  0%,
+  19.999% {
+    opacity: 1;
+  }
+
+  20%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.loader-frame {
+  animation: loader-frame-cycle 600ms linear infinite;
+  animation-delay: calc(var(--loader-index) * -120ms);
+  opacity: 0;
+}
+
 .cn-toast {
   background: var(--popover) !important;
   color: var(--popover-foreground) !important;

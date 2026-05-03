@@ -17,6 +17,11 @@ function triggerByDataAttribute(attr: string) {
   element?.click()
 }
 
+function triggerRepoTabByIndex(index: number) {
+  const tabs = document.querySelectorAll<HTMLElement>("[data-repo-tab]")
+  tabs[index]?.click()
+}
+
 export default function RepoKeyboardShortcuts({
   enabled,
 }: RepoKeyboardShortcutsProps) {
@@ -60,27 +65,39 @@ export default function RepoKeyboardShortcuts({
           break
         case "1":
           event.preventDefault()
-          triggerByDataAttribute("data-repo-tab-code")
+          triggerRepoTabByIndex(0)
           break
         case "2":
           event.preventDefault()
-          triggerByDataAttribute("data-repo-tab-commits")
+          triggerRepoTabByIndex(1)
           break
         case "3":
           event.preventDefault()
-          triggerByDataAttribute("data-repo-tab-issues")
+          triggerRepoTabByIndex(2)
           break
         case "4":
           event.preventDefault()
-          triggerByDataAttribute("data-repo-tab-pulls")
+          triggerRepoTabByIndex(3)
           break
         case "5":
           event.preventDefault()
-          triggerByDataAttribute("data-repo-tab-releases")
+          triggerRepoTabByIndex(4)
           break
         case "6":
           event.preventDefault()
-          triggerByDataAttribute("data-repo-tab-settings")
+          triggerRepoTabByIndex(5)
+          break
+        case "7":
+          event.preventDefault()
+          triggerRepoTabByIndex(6)
+          break
+        case "8":
+          event.preventDefault()
+          triggerRepoTabByIndex(7)
+          break
+        case "9":
+          event.preventDefault()
+          triggerRepoTabByIndex(8)
           break
         default:
           break

@@ -276,10 +276,10 @@ export default async function RepositoryPage({
       ? "issues"
       : pr
         ? "pulls"
-        : discussion
+        : discussion && repository.has_discussions
           ? "discussions"
           : tab === "commits" ||
-              tab === "discussions" ||
+              (tab === "discussions" && repository.has_discussions) ||
               tab === "issues" ||
               tab === "pulls" ||
               tab === "releases" ||
