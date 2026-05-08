@@ -851,6 +851,35 @@
   border-color: var(--border) !important;
 }
 
+.video-player-range::-webkit-slider-runnable-track {
+  height: 12px;
+  background: transparent;
+}
+
+.video-player-range::-webkit-slider-thumb {
+  width: 12px;
+  height: 12px;
+  margin-top: 0;
+  appearance: none;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.16);
+}
+
+.video-player-range::-moz-range-track {
+  height: 12px;
+  background: transparent;
+}
+
+.video-player-range::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: 0;
+  border-radius: 999px;
+  background: white;
+  box-shadow: 0 0 0 4px rgb(255 255 255 / 0.16);
+}
+
 ::-webkit-scrollbar {
   width: 0px;
   height: 8px;

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import Image from "@/components/Image"
 import A from "@/components/A"
+import VideoPlayer from "@/components/VideoPlayer"
 
 type MarkdownPreviewProps = {
   markdown: string
@@ -169,19 +170,18 @@ function SmartMedia({
           ? "my-4 rounded-xl bg-transparent object-contain"
           : "my-4 max-h-[32rem] w-full rounded-xl bg-transparent object-contain"
     return (
-      <video
-        controls
+      <VideoPlayer
         className={[baseClassName, className].filter(Boolean).join(" ")}
+        height={height}
         onError={() =>
           setMode(explicitImage || attachment ? "image" : "fallback")
         }
-        height={height}
         src={src}
         style={style}
+        title={alt || "Markdown video"}
         width={width}
-      >
-        <track kind="captions" />
-      </video>
+        videoClassName="max-h-[inherit]"
+      />
     )
   }
 

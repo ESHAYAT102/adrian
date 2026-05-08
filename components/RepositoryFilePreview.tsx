@@ -26,6 +26,7 @@ import A from "@/components/A"
 import Image from "@/components/Image"
 import MarkdownPreview from "@/components/MarkdownPreview"
 import { getRepositoryItemIcon } from "@/components/RepositoryFileTree"
+import VideoPlayer from "@/components/VideoPlayer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -602,13 +603,11 @@ function RepositoryFilePreviewContent({
             className="block max-h-[70vh] max-w-full rounded-xl object-contain"
           />
         ) : target.isVideo && target.downloadUrl ? (
-          <video
-            controls
+          <VideoPlayer
             src={target.downloadUrl}
-            className="block max-h-[70vh] max-w-full rounded-xl object-contain"
-          >
-            <track kind="captions" />
-          </video>
+            className="max-h-[70vh] max-w-full"
+            title={target.name}
+          />
         ) : activeMode === "preview" ? (
           <MarkdownPreview
             markdown={content}
