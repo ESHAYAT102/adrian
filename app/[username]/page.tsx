@@ -54,6 +54,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params
   const sessionUser = await getSessionUser()
   const profileData = await getGitHubProfilePageData(username, sessionUser)
+  const profileGitHubUrl = `https://github.com/${encodeURIComponent(username)}`
 
   if (profileData.rateLimited) {
     const rateLimitTime = profileData.rateLimitReset
@@ -78,7 +79,11 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                     : "Try again in a few minutes."}
                 </EmptyDescription>
               </EmptyHeader>
-              <EmptyContent />
+              <EmptyContent>
+                <Button className="px-4" asChild>
+                  <A href={profileGitHubUrl}>Open in GitHub</A>
+                </Button>
+              </EmptyContent>
             </Empty>
             {!sessionUser && (
               <Button className="px-4" asChild>

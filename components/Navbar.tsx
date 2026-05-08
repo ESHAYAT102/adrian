@@ -149,16 +149,18 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           >
             <Command />
           </Button>
-          <Button
-            asChild
-            className="rounded-full cursor-default"
-            variant="ghost"
-            title="Create new repository"
-          >
-            <A href={newRepositoryUrl}>
-              <Plus />
-            </A>
-          </Button>
+          {user ? (
+            <Button
+              asChild
+              className="rounded-full cursor-default"
+              variant="ghost"
+              title="Create new repository"
+            >
+              <A href={newRepositoryUrl}>
+                <Plus />
+              </A>
+            </Button>
+          ) : null}
         </BrowserContextMenu>
         <div className="items-center">
           {user && (
