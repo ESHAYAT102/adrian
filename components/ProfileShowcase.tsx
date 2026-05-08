@@ -1,6 +1,13 @@
 "use client"
 
-import { use, useEffect, useMemo, useState } from "react"
+import {
+  type PointerEvent,
+  use,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import {
   Building2,
   LinkIcon,
@@ -12,6 +19,7 @@ import {
 import A from "@/components/A"
 import type { Activity } from "@/components/contribution-graph"
 import ProfileRepositories from "@/components/ProfileRepositories"
+import { playUiSound } from "@/components/UiSoundEffects"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Tooltip,
@@ -31,7 +39,7 @@ type ProfileShowcaseProps = {
 
 const LANGUAGE_COLORS = [
   "bg-sky-500",
-  "bg-amber-400",
+  "bg-yellow-400",
   "bg-violet-500",
   "bg-orange-500",
   "bg-lime-400",
@@ -87,6 +95,11 @@ function buildLanguageDistribution(repositories: GitHubRepository[]) {
     counts.set(repository.language, (counts.get(repository.language) ?? 0) + 1)
   }
 
+  const total = Array.from(counts.values()).reduce(
+    (sum, value) => sum + value,
+    0
+  )
+
   return Array.from(counts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 6)
@@ -94,6 +107,7 @@ function buildLanguageDistribution(repositories: GitHubRepository[]) {
       colorClass: LANGUAGE_COLORS[index] ?? "bg-muted-foreground",
       count,
       language,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
     }))
 }
 
@@ -103,10 +117,32 @@ function ContributionBackdrop({
   contributions: Activity[]
 }) {
   const visibleDays = contributions.slice(0, 371)
+  const lastHoverTarget = useRef<EventTarget | null>(null)
+  const lastHoverAt = useRef(0)
+
+  function handleContributionPointerOver(event: PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") return
+
+    const cell = (event.target as Element | null)?.closest(
+      "[data-contribution-cell]"
+    )
+
+    if (!cell || cell === lastHoverTarget.current) return
+
+    const now = performance.now()
+    if (now - lastHoverAt.current < 45) return
+
+    lastHoverTarget.current = cell
+    lastHoverAt.current = now
+    playUiSound("hover")
+  }
 
   return (
     <div className="pointer-events-none absolute inset-x-0 top-0 h-80 overflow-hidden opacity-60">
-      <div className="absolute inset-x-0 top-0 mx-auto grid w-460 grid-cols-[repeat(53,24px)] grid-rows-7 gap-2 px-10 pt-8 blur-[0.2px]">
+      <div
+        className="absolute inset-x-0 top-0 mx-auto grid w-460 grid-cols-[repeat(53,24px)] grid-rows-7 gap-2 px-10 pt-8 blur-[0.2px]"
+        onPointerOver={handleContributionPointerOver}
+      >
         <TooltipProvider>
           {visibleDays.map((activity) => (
             <Tooltip key={activity.date}>
@@ -121,6 +157,7 @@ function ContributionBackdrop({
                     activity.level >= 4 && "bg-muted-foreground/32"
                   )}
                   aria-label={`${activity.count} contributions on ${formatContributionDate(activity.date)}`}
+                  data-contribution-cell
                   tabIndex={0}
                 />
               </TooltipTrigger>
@@ -272,19 +309,31 @@ export default function ProfileShowcase({
         </div>
 
         {languageDistribution.length > 0 ? (
-          <div className="flex flex-wrap gap-3">
-            {languageDistribution.map((language) => (
-              <div
-                key={language.language}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background/30 px-3 py-1.5 text-sm text-muted-foreground"
-              >
-                <span
-                  className={cn("size-2 rounded-full", language.colorClass)}
+          <div className="max-w-3xl space-y-3">
+            <div className="flex h-2.5 overflow-hidden rounded-full bg-muted">
+              {languageDistribution.map((language) => (
+                <div
+                  key={language.language}
+                  className={language.colorClass}
+                  style={{ width: `${language.percentage}%` }}
                 />
-                {language.language}
-                <span className="text-xs">{language.count}</span>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+              {languageDistribution.map((language) => (
+                <div
+                  key={language.language}
+                  className="flex items-center gap-2"
+                >
+                  <span
+                    className={cn("size-2 rounded-full", language.colorClass)}
+                  />
+                  <span>
+                    {language.language} {language.percentage}%
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
 
