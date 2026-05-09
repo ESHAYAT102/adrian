@@ -9,9 +9,16 @@ import { ContextMenuGroup, ContextMenuItem } from "@/components/ui/context-menu"
 
 type AProps = React.ComponentProps<"a"> & {
   href: string
+  prefetch?: React.ComponentProps<typeof Link>["prefetch"]
 }
 
-export default function A({ href, children, className, ...props }: AProps) {
+export default function A({
+  href,
+  children,
+  className,
+  prefetch = true,
+  ...props
+}: AProps) {
   const isInternalHref = href.startsWith("/")
 
   const openInNewTab = () => {
@@ -42,7 +49,7 @@ export default function A({ href, children, className, ...props }: AProps) {
       }
     >
       {isInternalHref ? (
-        <Link href={href} className={className} prefetch {...props}>
+        <Link href={href} className={className} prefetch={prefetch} {...props}>
           {children}
         </Link>
       ) : (

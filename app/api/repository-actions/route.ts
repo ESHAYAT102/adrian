@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 
 import {
   forkGitHubRepository,
@@ -39,6 +40,9 @@ export async function POST(request: Request) {
       { status: result.status }
     )
   }
+
+  revalidatePath(`/${sessionUser.login}`)
+  revalidatePath(`/${body.owner}/${body.repo}`)
 
   return NextResponse.json({ ok: true })
 }

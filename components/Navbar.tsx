@@ -212,7 +212,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <A href={profileUrl}>
+                <A href={profileUrl} prefetch={false}>
                   <DropdownMenuItem className="hover:bg-accent-foreground/10">
                     <User className="mr-2 size-4" />
                     Your profile
