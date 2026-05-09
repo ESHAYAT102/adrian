@@ -27,6 +27,16 @@ import Image from "@/components/Image"
 import MarkdownPreview from "@/components/MarkdownPreview"
 import { getRepositoryItemIcon } from "@/components/RepositoryFileTree"
 import VideoPlayer from "@/components/VideoPlayer"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -216,8 +226,10 @@ function RepositoryFilePreviewContent({
   const router = useRouter()
   const [previewMode, setPreviewMode] = useState<PreviewMode>("preview")
   const [isCommitDialogOpen, setIsCommitDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDiscardDialogOpen, setIsDiscardDialogOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [editorScrollTop, setEditorScrollTop] = useState(0)
   const [content, setContent] = useState(target.text)
@@ -416,8 +428,8 @@ function RepositoryFilePreviewContent({
   }
 
   const handleDelete = async () => {
-    if (!target || !canEdit) return
-    if (!window.confirm(`Delete ${target.path}?`)) return
+    if (!target || !canEdit || isDeleting) return
+    setIsDeleting(true)
 
     const response = await fetch("/api/repository-file", {
       body: JSON.stringify({
@@ -437,6 +449,7 @@ function RepositoryFilePreviewContent({
     const data = (await response.json()) as { error?: string }
 
     if (!response.ok) {
+      setIsDeleting(false)
       toast.error(
         data.error === "forbidden"
           ? "You do not have permission to delete this file."
@@ -446,6 +459,8 @@ function RepositoryFilePreviewContent({
     }
 
     toast.success("File deleted")
+    setIsDeleteDialogOpen(false)
+    setIsDeleting(false)
     router.push(`/${owner}/${repo}?branch=${encodeURIComponent(branch)}`)
     router.refresh()
   }
@@ -569,7 +584,7 @@ function RepositoryFilePreviewContent({
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     variant="destructive"
-                    onClick={handleDelete}
+                    onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={!canEdit}
                   >
                     <X />
@@ -737,6 +752,46 @@ function RepositoryFilePreviewContent({
           </form>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!isDeleting) setIsDeleteDialogOpen(open)
+        }}
+      >
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will delete{" "}
+              <code className="rounded-sm border px-1 font-bold">
+                {target.path}
+              </code>{" "}
+              from{" "}
+              <code className="rounded-sm border px-1 font-bold">{branch}</code>
+              . This creates a commit on GitHub.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting} className="rounded-xl">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isDeleting}
+              className="rounded-xl"
+              onClick={(event) => {
+                event.preventDefault()
+                void handleDelete()
+              }}
+            >
+              {isDeleting ? <Loader2 className="animate-spin" /> : <X />}
+              Delete file
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={isDiscardDialogOpen} onOpenChange={setIsDiscardDialogOpen}>
         <DialogContent className="max-w-md rounded-2xl">
