@@ -30,13 +30,13 @@ export default function RepositoryActions({
 
   const cloneUrl = useMemo(() => {
     if (protocol === "ssh") {
-      return `git@github.com:${fullName}.git`
+      return `git clone git@github.com:${fullName}.git`
     }
     if (protocol === "gh") {
       return `gh repo clone ${fullName}`
     }
 
-    return `${htmlUrl}.git`
+    return `git clone ${htmlUrl}.git`
   }, [fullName, htmlUrl, protocol])
 
   const zipUrl = `${htmlUrl}/archive/refs/heads/${branch}.zip`

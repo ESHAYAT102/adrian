@@ -92,6 +92,42 @@ type SearchUserResult = {
 const RECENT_COMMANDS_KEY = "xenon:recent-commands"
 const MAX_RECENTS = 12
 
+function getMatchingThemeFamily(query: string) {
+  const normalizedQuery = query.trim().toLowerCase()
+  if (!normalizedQuery) return null
+
+  const exactMatch = THEME_FAMILIES.find((family) => {
+    const exactTerms = [
+      family.id,
+      family.name,
+      family.lightTheme,
+      family.darkTheme,
+      ...family.keywords,
+    ].map((term) => term.toLowerCase())
+
+    return exactTerms.includes(normalizedQuery)
+  })
+
+  if (exactMatch) return exactMatch
+
+  const partialMatches = THEME_FAMILIES.filter((family) => {
+    const searchableText = [
+      family.id,
+      family.name,
+      family.description,
+      family.lightTheme,
+      family.darkTheme,
+      ...family.keywords,
+    ]
+      .join(" ")
+      .toLowerCase()
+
+    return searchableText.includes(normalizedQuery)
+  })
+
+  return partialMatches.length === 1 ? partialMatches[0] : null
+}
+
 export default function CommandPalette({
   open,
   onOpenChange,
@@ -344,11 +380,27 @@ export default function CommandPalette({
         icon: <Palette className="size-4 text-muted-foreground" />,
         onSelect: () => {
           markCommandUsed("choose-theme")
+          const matchingTheme = getMatchingThemeFamily(value)
+          if (matchingTheme) {
+            setThemeWithTransition(
+              getThemeIdForFamily(
+                currentTheme,
+                matchingTheme.id as ThemeFamilyId
+              )
+            )
+            toast.success(`${matchingTheme.name} enabled`)
+            onOpenChange(false)
+            return
+          }
+
           setValue("/themes ")
           requestAnimationFrame(() => inputRef.current?.focus())
         },
         keywords: [
           "theme",
+          "change",
+          "change theme",
+          "choose theme",
           "appearance",
           "catppuccin",
           "dracula",
@@ -423,11 +475,14 @@ export default function CommandPalette({
     ]
   }, [
     currentAppearance,
+    currentTheme,
     onOpenChange,
     soundsDisabled,
+    setThemeWithTransition,
     toggleSoundsDisabled,
     toggleTheme,
     user,
+    value,
   ])
 
   const orderedEntries = useMemo(() => {
