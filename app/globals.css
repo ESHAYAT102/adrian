@@ -87,7 +87,7 @@
   --chart-3: oklch(0.442 0.017 285.786);
   --chart-4: oklch(0.37 0.013 285.805);
   --chart-5: oklch(0.274 0.006 286.033);
-  --radius: 0.625rem;
+  --radius: 1.5rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.141 0.005 285.823);
   --sidebar-primary: oklch(0.21 0.006 285.885);
@@ -824,6 +824,22 @@
 @keyframes scale {
   to {
     mask-size: 200vmax;
+  }
+}
+
+@supports (corner-shape: squircle) {
+  :where(
+      [class~="rounded"],
+      [class*="rounded-"]:not([class*="rounded-full"]):not(
+          [class*="rounded-none"]
+        )
+    ) {
+    corner-shape: squircle;
+  }
+
+  :where([class*="before:rounded"])::before,
+  :where([class*="after:rounded"])::after {
+    corner-shape: squircle;
   }
 }
 
