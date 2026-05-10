@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Command } from "cmdk"
+import { Dialog as DialogPrimitive } from "radix-ui"
 import {
   Bell,
   BookMarked,
@@ -163,12 +164,6 @@ export default function CommandPalette({
         href: "/",
       },
       {
-        id: "repositories",
-        label: "Repositories",
-        icon: <BookMarked className="size-4" />,
-        href: user?.login ? `/${user.login}` : "/",
-      },
-      {
         id: "new-repo",
         label: "Create repository",
         icon: <Plus className="size-4" />,
@@ -191,7 +186,7 @@ export default function CommandPalette({
     if (user?.login) {
       baseItems.unshift({
         id: "profile",
-        label: "Your profile",
+        label: "Profile",
         icon: <User className="size-4" />,
         href: `/${user.login}`,
       })
@@ -228,9 +223,7 @@ export default function CommandPalette({
       const nextDisabled = (event as CustomEvent<{ disabled?: boolean }>).detail
         ?.disabled
       setSoundsDisabledState(
-        typeof nextDisabled === "boolean"
-          ? nextDisabled
-          : areUiSoundsDisabled()
+        typeof nextDisabled === "boolean" ? nextDisabled : areUiSoundsDisabled()
       )
     }
 
@@ -1159,140 +1152,159 @@ export default function CommandPalette({
 
   usePrefetchRoutes(searchPrefetchPaths)
 
+  const matchingUserRepos = useMemo(() => {
+    if (!user?.login) return []
+
+    const query = parsed?.argument?.toLowerCase() ?? ""
+    if (!query) return []
+
+    return userRepos
+      .filter(
+        (repo) =>
+          repo.fullName.toLowerCase().includes(query) ||
+          repo.name.toLowerCase().includes(query)
+      )
+      .slice(0, 5)
+  }, [parsed?.argument, user?.login, userRepos])
+
+  const searchRepositories = useMemo(() => {
+    if (!matchingUserRepos.length) return searchResults.repositories
+
+    const userRepoNames = new Set(
+      matchingUserRepos.map((repo) => repo.fullName.toLowerCase())
+    )
+    return searchResults.repositories.filter(
+      (repo) => !userRepoNames.has(repo.fullName.toLowerCase())
+    )
+  }, [matchingUserRepos, searchResults.repositories])
+
   return (
-    <Command.Dialog
-      open={open}
-      onOpenChange={onOpenChange}
-      shouldFilter={false}
-      ref={dialogRef}
-      className="fixed top-[15vh] left-1/2 z-60 w-[min(96vw,720px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-border/80 bg-card shadow-2xl"
-      onContextMenu={(event) => event.preventDefault()}
-    >
-      <div className="flex items-center gap-3 border-b border-border/80 px-4 py-3">
-        <CommandIcon className="size-4 text-muted-foreground" />
-        <Command.Input
-          value={value}
-          onValueChange={setValue}
-          ref={inputRef}
-          className="h-9 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          placeholder="Search commands..."
-          onKeyDown={async (event) => {
-            if (event.key !== "Enter") return
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Content asChild aria-describedby={undefined}>
+          <Command
+            shouldFilter={false}
+            ref={dialogRef}
+            className="fixed top-[15vh] left-1/2 z-60 w-[min(96vw,720px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 shadow-2xl backdrop-blur-md"
+            onContextMenu={(event) => event.preventDefault()}
+          >
+            <DialogPrimitive.Title className="sr-only">
+              Command palette
+            </DialogPrimitive.Title>
+            <div className="flex items-center gap-3 border-b border-border/80 px-4 py-3">
+              <CommandIcon className="size-4 text-muted-foreground" />
+              <Command.Input
+                value={value}
+                onValueChange={setValue}
+                ref={inputRef}
+                className="h-9 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                placeholder="Search commands..."
+                onKeyDown={async (event) => {
+                  if (event.key !== "Enter") return
 
-            if (
-              showSearchResults ||
-              showShortcuts ||
-              startsWithSlash
-            ) {
-              return
-            }
+                  if (showSearchResults || showShortcuts || startsWithSlash) {
+                    return
+                  }
 
-            const trimmedInput = value.trim().toLowerCase()
-            if (trimmedInput && !trimmedInput.startsWith("/")) {
-              const keywordAction = keywordActions.get(trimmedInput)
-              if (keywordAction) {
-                event.preventDefault()
-                onOpenChange(false)
-                keywordAction()
-                return
-              }
-            }
+                  const trimmedInput = value.trim().toLowerCase()
+                  if (
+                    trimmedInput &&
+                    !trimmedInput.startsWith("/") &&
+                    filteredEntries.length === 0
+                  ) {
+                    const keywordAction = keywordActions.get(trimmedInput)
+                    if (keywordAction) {
+                      event.preventDefault()
+                      onOpenChange(false)
+                      keywordAction()
+                      return
+                    }
+                  }
 
-            if (!parsed) return
+                  if (!parsed) return
 
-            event.preventDefault()
+                  event.preventDefault()
 
-            const { command, argument } = parsed
-            const needsArgument =
-              slashCommandNeedsArgument.get(command) ?? false
-            if (needsArgument && !argument) {
-              setValue(`/${command} `)
-              requestAnimationFrame(() => inputRef.current?.focus())
-              return
-            }
-            await executeSlashCommand(command, argument)
-          }}
-        />
-        <Kbd>/</Kbd>
-      </div>
+                  const { command, argument } = parsed
+                  const needsArgument =
+                    slashCommandNeedsArgument.get(command) ?? false
+                  if (needsArgument && !argument) {
+                    setValue(`/${command} `)
+                    requestAnimationFrame(() => inputRef.current?.focus())
+                    return
+                  }
+                  await executeSlashCommand(command, argument)
+                }}
+              />
+              <Kbd>/</Kbd>
+            </div>
 
-      <Command.List className={`h-auto ${listHeightClass} overflow-y-auto p-2`}>
-        <Command.Empty className="px-3 py-4 text-sm text-muted-foreground">
-          No results found.
-        </Command.Empty>
-        {showThemes ? (
-          <Command.Group>
-            {filteredThemeFamilies.length ? (
-              filteredThemeFamilies.map((family) => (
-                <Command.Item
-                  key={family.id}
-                  value={`${family.name} ${family.description} ${family.keywords.join(" ")}`}
-                  onSelect={() => {
-                    const nextTheme = getThemeIdForFamily(
-                      currentTheme,
-                      family.id as ThemeFamilyId
-                    )
-                    setThemeWithTransition(nextTheme)
-                    toast.success(`${family.name} enabled`)
-                  }}
-                  className="flex cursor-pointer items-center justify-between gap-5 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span
-                      className={`size-3 rounded-full border ${
-                        currentFamily.id === family.id
-                          ? "border-transparent bg-primary"
-                          : "border-transparent bg-muted"
-                      }`}
-                      aria-hidden
-                    />
-                    <span className="flex shrink-0 items-center -space-x-1">
-                      {family.swatches.map((swatch) => (
-                        <span
-                          key={swatch}
-                          className="size-3 rounded-full"
-                          style={{ backgroundColor: swatch }}
-                        />
-                      ))}
-                    </span>
-                    <span className="truncate">{family.name}</span>
-                  </div>
-                </Command.Item>
-              ))
-            ) : (
-              <Command.Item
-                value="No theme results"
-                className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
-              >
-                No themes found.
-              </Command.Item>
-            )}
-          </Command.Group>
-        ) : showSearchResults ? (
-          <Command.Group>
-            {searchLoading ? (
-              <Command.Item
-                value="Searching"
-                className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
-              >
-                Searching...
-              </Command.Item>
-            ) : (
-              <>
-                {user?.login && userRepos.length > 0 && (
-                  <Command.Group>
-                    {userRepos
-                      .filter(
-                        (repo) =>
-                          repo.fullName
-                            .toLowerCase()
-                            .includes(parsed?.argument?.toLowerCase() ?? "") ||
-                          repo.name
-                            .toLowerCase()
-                            .includes(parsed?.argument?.toLowerCase() ?? "")
-                      )
-                      .slice(0, 5)
-                      .map((repo) => (
+            <Command.List
+              className={`h-auto ${listHeightClass} overflow-y-auto p-2`}
+            >
+              <Command.Empty className="px-3 py-4 text-sm text-muted-foreground">
+                No results found.
+              </Command.Empty>
+              {showThemes ? (
+                <Command.Group>
+                  {filteredThemeFamilies.length ? (
+                    filteredThemeFamilies.map((family) => (
+                      <Command.Item
+                        key={family.id}
+                        value={`${family.name} ${family.description} ${family.keywords.join(" ")}`}
+                        onSelect={() => {
+                          const nextTheme = getThemeIdForFamily(
+                            currentTheme,
+                            family.id as ThemeFamilyId
+                          )
+                          setThemeWithTransition(nextTheme)
+                          toast.success(`${family.name} enabled`)
+                        }}
+                        className="flex cursor-pointer items-center justify-between gap-5 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span
+                            className={`size-3 rounded-full border ${
+                              currentFamily.id === family.id
+                                ? "border-transparent bg-primary"
+                                : "border-transparent bg-muted"
+                            }`}
+                            aria-hidden
+                          />
+                          <span className="flex shrink-0 items-center -space-x-1">
+                            {family.swatches.map((swatch) => (
+                              <span
+                                key={swatch}
+                                className="size-3 rounded-full"
+                                style={{ backgroundColor: swatch }}
+                              />
+                            ))}
+                          </span>
+                          <span className="truncate">{family.name}</span>
+                        </div>
+                      </Command.Item>
+                    ))
+                  ) : (
+                    <Command.Item
+                      value="No theme results"
+                      className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
+                    >
+                      No themes found.
+                    </Command.Item>
+                  )}
+                </Command.Group>
+              ) : showSearchResults ? (
+                <Command.Group>
+                  {searchLoading ? (
+                    <Command.Item
+                      value="Searching"
+                      className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
+                    >
+                      Searching...
+                    </Command.Item>
+                  ) : (
+                    <>
+                      {matchingUserRepos.map((repo) => (
                         <Command.Item
                           key={`user-repo-${repo.id}`}
                           value={repo.fullName}
@@ -1318,206 +1330,211 @@ export default function CommandPalette({
                           </div>
                         </Command.Item>
                       ))}
-                  </Command.Group>
-                )}
-                {searchResults.repositories.map((repo) => (
-                  <Command.Item
-                    key={`repo-${repo.id}`}
-                    value={repo.fullName}
-                    onSelect={() => {
-                      markCommandUsed("search")
-                      onOpenChange(false)
-                      router.push(`/${repo.fullName}`)
-                    }}
-                    className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
-                  >
-                    <div className="flex min-w-0 items-center gap-3">
-                      <BookMarked className="size-4 shrink-0 text-muted-foreground" />
-                      <div className="flex min-w-0 flex-col">
-                        <span>{repo.fullName}</span>
-                        {repo.description ? (
+                      {searchRepositories.map((repo) => (
+                        <Command.Item
+                          key={`repo-${repo.id}`}
+                          value={repo.fullName}
+                          onSelect={() => {
+                            markCommandUsed("search")
+                            onOpenChange(false)
+                            router.push(`/${repo.fullName}`)
+                          }}
+                          className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <BookMarked className="size-4 shrink-0 text-muted-foreground" />
+                            <div className="flex min-w-0 flex-col">
+                              <span>{repo.fullName}</span>
+                              {repo.description ? (
+                                <span className="text-xs text-muted-foreground">
+                                  <span className="block max-w-full truncate">
+                                    {repo.description}
+                                  </span>
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </Command.Item>
+                      ))}
+                      {searchResults.users.map((userResult) => (
+                        <Command.Item
+                          key={`user-${userResult.login}`}
+                          value={userResult.login}
+                          onSelect={() => {
+                            markCommandUsed("search")
+                            onOpenChange(false)
+                            router.push(`/${userResult.login}`)
+                          }}
+                          className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <User className="size-4 text-muted-foreground" />
+                            <span>{userResult.login}</span>
+                          </div>
                           <span className="text-xs text-muted-foreground">
-                            <span className="block max-w-full truncate">
-                              {repo.description}
-                            </span>
+                            {userResult.type === "Organization"
+                              ? "Organization"
+                              : "User"}
                           </span>
-                        ) : null}
+                        </Command.Item>
+                      ))}
+                      {!matchingUserRepos.length &&
+                      !searchRepositories.length &&
+                      !searchResults.users.length ? (
+                        <Command.Item
+                          value="No search results"
+                          className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
+                        >
+                          No results found.
+                        </Command.Item>
+                      ) : null}
+                    </>
+                  )}
+                </Command.Group>
+              ) : showShortcuts ? (
+                <Command.Group>
+                  {shortcutItems.map((shortcut) => (
+                    <Command.Item
+                      key={shortcut.id}
+                      value={shortcut.label}
+                      onSelect={() => {}}
+                      className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition aria-selected:bg-accent/50"
+                    >
+                      <span>{shortcut.label}</span>
+                      {shortcut.keys.length > 1 ? (
+                        <KbdGroup>
+                          {shortcut.keys.map((key) => (
+                            <Kbd key={key}>{key}</Kbd>
+                          ))}
+                        </KbdGroup>
+                      ) : (
+                        <Kbd>{shortcut.keys[0]}</Kbd>
+                      )}
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+              ) : startsWithSlash ? (
+                matchingSlashCommands.length ? (
+                  <Command.Group>
+                    {matchingSlashCommands.map((item) => (
+                      <Command.Item
+                        key={item.id}
+                        value={item.command}
+                        onSelect={() => {
+                          const trimmedInput = value.trim()
+                          const commandToken = item.command.slice(1)
+                          const hasArgument =
+                            trimmedInput.startsWith(item.command) &&
+                            trimmedInput.length > item.command.length &&
+                            trimmedInput.replace(item.command, "").trim()
+                              .length > 0
+
+                          if (!item.requiresArgument || hasArgument) {
+                            const argument = hasArgument
+                              ? trimmedInput.replace(item.command, "").trim()
+                              : ""
+                            executeSlashCommand(commandToken, argument)
+                            return
+                          }
+
+                          item.onSelect()
+                          requestAnimationFrame(() => inputRef.current?.focus())
+                        }}
+                        className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-muted-foreground">
+                            {item.command}
+                          </span>
+                          <span className="text-muted-foreground">
+                            {item.description}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {item.placeholder}
+                        </span>
+                      </Command.Item>
+                    ))}
+                  </Command.Group>
+                ) : (
+                  <Command.Group>
+                    <Command.Item
+                      value="No results found"
+                      className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
+                    >
+                      No results found.
+                    </Command.Item>
+                  </Command.Group>
+                )
+              ) : (
+                <Command.Group>
+                  {filteredEntries.map((entry) => (
+                    <Command.Item
+                      key={entry.id}
+                      value={entry.label}
+                      onSelect={entry.onSelect}
+                      className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground">
+                          {entry.icon}
+                        </span>
+                        {entry.label}
                       </div>
-                    </div>
-                  </Command.Item>
-                ))}
-                {searchResults.users.map((userResult) => (
+                    </Command.Item>
+                  ))}
+                </Command.Group>
+              )}
+
+              {parsed && ["new"].includes(parsed.command) ? (
+                <Command.Group>
                   <Command.Item
-                    key={`user-${userResult.login}`}
-                    value={userResult.login}
-                    onSelect={() => {
-                      markCommandUsed("search")
+                    value={`Create ${parsed.argument}`}
+                    onSelect={async () => {
+                      if (!parsed.argument) {
+                        toast.error("Provide a repository name after /new")
+                        return
+                      }
+
+                      const response = await fetch("/api/repositories", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          name: parsed.argument,
+                          private: false,
+                          auto_init: false,
+                        }),
+                      })
+
+                      const data = (await response.json()) as {
+                        repository?: { full_name: string }
+                      }
+
+                      if (!response.ok || !data.repository?.full_name) {
+                        toast.error("Could not create repository")
+                        return
+                      }
+
                       onOpenChange(false)
-                      router.push(`/${userResult.login}`)
+                      router.push(`/${data.repository.full_name}`)
+                      toast.success("Repository created")
                     }}
                     className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
                   >
                     <div className="flex items-center gap-3">
-                      <User className="size-4 text-muted-foreground" />
-                      <span>{userResult.login}</span>
+                      <Plus className="size-4 text-muted-foreground" />
+                      Create repository
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {userResult.type === "Organization"
-                        ? "Organization"
-                        : "User"}
+                      {parsed.argument || "repo-name"}
                     </span>
                   </Command.Item>
-                ))}
-                {!searchResults.repositories.length &&
-                !searchResults.users.length ? (
-                  <Command.Item
-                    value="No search results"
-                    className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
-                  >
-                    No results found.
-                  </Command.Item>
-                ) : null}
-              </>
-            )}
-          </Command.Group>
-        ) : showShortcuts ? (
-          <Command.Group>
-            {shortcutItems.map((shortcut) => (
-              <Command.Item
-                key={shortcut.id}
-                value={shortcut.label}
-                onSelect={() => {}}
-                className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition aria-selected:bg-accent/50"
-              >
-                <span>{shortcut.label}</span>
-                {shortcut.keys.length > 1 ? (
-                  <KbdGroup>
-                    {shortcut.keys.map((key) => (
-                      <Kbd key={key}>{key}</Kbd>
-                    ))}
-                  </KbdGroup>
-                ) : (
-                  <Kbd>{shortcut.keys[0]}</Kbd>
-                )}
-              </Command.Item>
-            ))}
-          </Command.Group>
-        ) : startsWithSlash ? (
-          matchingSlashCommands.length ? (
-            <Command.Group>
-              {matchingSlashCommands.map((item) => (
-                <Command.Item
-                  key={item.id}
-                  value={item.command}
-                  onSelect={() => {
-                    const trimmedInput = value.trim()
-                    const commandToken = item.command.slice(1)
-                    const hasArgument =
-                      trimmedInput.startsWith(item.command) &&
-                      trimmedInput.length > item.command.length &&
-                      trimmedInput.replace(item.command, "").trim().length > 0
-
-                    if (!item.requiresArgument || hasArgument) {
-                      const argument = hasArgument
-                        ? trimmedInput.replace(item.command, "").trim()
-                        : ""
-                      executeSlashCommand(commandToken, argument)
-                      return
-                    }
-
-                    item.onSelect()
-                    requestAnimationFrame(() => inputRef.current?.focus())
-                  }}
-                  className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-muted-foreground">
-                      {item.command}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {item.description}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground">
-                    {item.placeholder}
-                  </span>
-                </Command.Item>
-              ))}
-            </Command.Group>
-          ) : (
-            <Command.Group>
-              <Command.Item
-                value="No results found"
-                className="flex cursor-default items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-muted-foreground"
-              >
-                No results found.
-              </Command.Item>
-            </Command.Group>
-          )
-        ) : (
-          <Command.Group>
-            {filteredEntries.map((entry) => (
-              <Command.Item
-                key={entry.id}
-                value={entry.label}
-                onSelect={entry.onSelect}
-                className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-muted-foreground">{entry.icon}</span>
-                  {entry.label}
-                </div>
-              </Command.Item>
-            ))}
-          </Command.Group>
-        )}
-
-        {parsed && ["new"].includes(parsed.command) ? (
-          <Command.Group>
-            <Command.Item
-              value={`Create ${parsed.argument}`}
-              onSelect={async () => {
-                if (!parsed.argument) {
-                  toast.error("Provide a repository name after /new")
-                  return
-                }
-
-                const response = await fetch("/api/repositories", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    name: parsed.argument,
-                    private: false,
-                    auto_init: false,
-                  }),
-                })
-
-                const data = (await response.json()) as {
-                  repository?: { full_name: string }
-                }
-
-                if (!response.ok || !data.repository?.full_name) {
-                  toast.error("Could not create repository")
-                  return
-                }
-
-                onOpenChange(false)
-                router.push(`/${data.repository.full_name}`)
-                toast.success("Repository created")
-              }}
-              className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
-            >
-              <div className="flex items-center gap-3">
-                <Plus className="size-4 text-muted-foreground" />
-                Create repository
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {parsed.argument || "repo-name"}
-              </span>
-            </Command.Item>
-          </Command.Group>
-        ) : null}
-      </Command.List>
-    </Command.Dialog>
+                </Command.Group>
+              ) : null}
+            </Command.List>
+          </Command>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }
