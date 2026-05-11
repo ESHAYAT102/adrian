@@ -657,7 +657,7 @@ export default async function RepositoryPage({
 
                     <div className="hidden gap-6 lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
                       <div className="space-y-4">
-                        <Card className="self-start rounded-2xl">
+                        <Card className="self-start overflow-hidden rounded-2xl">
                           <CardContent className="p-0">
                             {contents.length > 0 ? (
                               <RepositoryFileTree
