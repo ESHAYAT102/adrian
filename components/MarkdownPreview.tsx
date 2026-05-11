@@ -370,7 +370,7 @@ export default function MarkdownPreview({
   }
 
   return (
-    <div className="max-w-90vw min-w-0 space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground **:max-w-[min(85vw,100%)]!">
+    <div className="max-w-[90vw] min-w-0 space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground **:max-w-[min(85vw,100%)]!">
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         remarkPlugins={[remarkGfm]}
