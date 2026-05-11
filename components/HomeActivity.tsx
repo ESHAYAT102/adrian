@@ -138,7 +138,7 @@ export default function HomeActivity({ activity }: HomeActivityProps) {
         </Button>
       </div>
 
-      <div className="grid max-w-[90vw] gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         {filteredActivity.map((item) => {
           const Icon = getCategoryIcon(item.category)
           return (
