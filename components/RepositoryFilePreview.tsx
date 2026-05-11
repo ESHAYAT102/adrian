@@ -472,7 +472,7 @@ function RepositoryFilePreviewContent({
   }
 
   return (
-    <Card className="min-w-0 rounded-2xl">
+    <Card className="w-full max-w-full min-w-0 rounded-2xl">
       <CardHeader className="border-b border-border px-3 py-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -767,7 +767,7 @@ function RepositoryFilePreviewContent({
             </div>
           </div>
         ) : (
-          <div className="relative min-h-[52vh] w-full max-w-[90vw] overflow-hidden rounded-xl border border-border bg-[#151515] sm:min-h-[60vh]">
+          <div className="relative min-h-[52vh] w-full max-w-[min(90vw,100%)] overflow-hidden rounded-xl border border-border bg-[#151515] sm:min-h-[60vh]">
             <div
               aria-hidden="true"
               className="absolute inset-0 overflow-auto select-text"

@@ -146,6 +146,10 @@ function SmartMedia({
     explicitVideo ? "video" : "image"
   )
   const hasExplicitSize = Boolean(width || height)
+  const blockMediaStyle: React.CSSProperties =
+    variant === "block" && !isBadge
+      ? { ...style, width: "90vw", maxWidth: "90vw" }
+      : { ...style, maxWidth: "min(90vw, 100%)" }
 
   if (mode === "fallback") {
     return (
@@ -164,11 +168,11 @@ function SmartMedia({
     const baseClassName =
       variant === "inline"
         ? hasExplicitSize
-          ? "inline-block max-w-[80vw] rounded-md bg-transparent align-middle object-contain"
+          ? "inline-block max-w-[min(90vw,100%)] rounded-md bg-transparent align-middle object-contain"
           : "inline-block max-h-8 w-auto rounded-md bg-transparent align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 max-w-[80vw] rounded-xl bg-transparent object-contain"
-          : "my-4 max-h-[32rem] w-full max-w-[80vw] rounded-xl bg-transparent object-contain"
+          ? "my-4 w-[90vw] max-w-[90vw] rounded-xl bg-transparent object-contain"
+          : "my-4 max-h-[32rem] w-[90vw] max-w-[90vw] rounded-xl bg-transparent object-contain"
     return (
       <VideoPlayer
         className={[baseClassName, className].filter(Boolean).join(" ")}
@@ -177,9 +181,9 @@ function SmartMedia({
           setMode(explicitImage || attachment ? "image" : "fallback")
         }
         src={src}
-        style={{ ...style, maxWidth: "80vw" }}
+        style={blockMediaStyle}
         title={alt || "Markdown video"}
-        width={width}
+        width={variant === "block" && !isBadge ? undefined : width}
         videoClassName="max-h-[inherit]"
       />
     )
@@ -188,13 +192,13 @@ function SmartMedia({
   const baseClassName =
     variant === "inline"
       ? hasExplicitSize
-        ? "inline-block max-w-[80vw] align-middle object-contain"
+        ? "inline-block max-w-[min(90vw,100%)] align-middle object-contain"
         : "inline-block max-h-8 w-auto align-middle object-contain"
       : isBadge
         ? "my-1 inline-block h-5 w-auto align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 block h-auto max-w-[80vw] rounded-xl object-contain"
-          : "my-4 block h-auto max-h-[32rem] max-w-[80vw] rounded-xl object-contain"
+          ? "my-4 block h-auto w-[90vw] max-w-[90vw] rounded-xl object-contain"
+          : "my-4 block h-auto max-h-[32rem] w-[90vw] max-w-[90vw] rounded-xl object-contain"
 
   return (
     <Image
@@ -205,8 +209,8 @@ function SmartMedia({
       }
       height={height}
       src={src}
-      style={{ ...style, maxWidth: "80vw" }}
-      width={width}
+      style={blockMediaStyle}
+      width={variant === "block" && !isBadge ? undefined : width}
     />
   )
 }
@@ -226,7 +230,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
   }
 
   return (
-    <div className="relative w-full max-w-[90vw]">
+    <div className="relative w-full max-w-[min(90vw,100%)]">
       <Button
         type="button"
         variant="outline"
@@ -236,7 +240,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
       >
         {copied ? <Check /> : <Copy />}
       </Button>
-      <div className="max-w-[90vw] overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="max-w-[min(90vw,100%)] overflow-x-auto rounded-xl border border-border bg-card">
         <SyntaxHighlighter
           language={language}
           style={oneDark}
@@ -246,7 +250,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
             padding: "14px 56px 14px 16px",
             fontSize: "12px",
             lineHeight: "1.6",
-            maxWidth: "90vw",
+            maxWidth: "min(90vw, 100%)",
             overflowX: "auto",
           }}
           codeTagProps={{
@@ -369,7 +373,7 @@ export default function MarkdownPreview({
   }
 
   return (
-    <div className="min-w-0 max-w-full space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground">
+    <div className="min-w-0 !max-w-[90vw] space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground [&_*]:!max-w-[90vw]">
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         remarkPlugins={[remarkGfm]}
@@ -444,6 +448,12 @@ export default function MarkdownPreview({
             <h3
               {...props}
               className="text-lg font-semibold break-words text-foreground"
+            />
+          ),
+          hr: (props) => (
+            <hr
+              {...props}
+              className="my-6 w-[90vw] max-w-[90vw] border-border"
             />
           ),
           img: ({ alt, src, width, height, className, style }) => {

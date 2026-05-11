@@ -89,7 +89,7 @@ export default function Image({
         src={src}
         alt={alt}
         className={cn("h-auto max-w-full", className)}
-        style={{ ...style, maxWidth: "100%" }}
+        style={{ maxWidth: "100%", ...style }}
         {...props}
       />
     </BrowserContextMenu>
