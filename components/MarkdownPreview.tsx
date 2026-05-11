@@ -346,18 +346,15 @@ export default function MarkdownPreview({
         nodeAny.type === "a" &&
         typeof nodeAny.props?.children === "object" &&
         (nodeAny.props?.children as { type?: unknown }).type === "img" &&
-        typeof (nodeAny.props?.children as { props?: { src?: unknown } })
-          .props?.src === "string"
+        typeof (nodeAny.props?.children as { props?: { src?: unknown } }).props
+          ?.src === "string"
       ) {
         const childAny = nodeAny.props?.children as {
           props?: { height?: unknown; src?: string; width?: unknown }
         }
         return isSmallMedia({
           height: childAny.props?.height as string | number | undefined,
-          src: resolveMarkdownUrl(
-            childAny.props?.src ?? "",
-            repositoryContext
-          ),
+          src: resolveMarkdownUrl(childAny.props?.src ?? "", repositoryContext),
           width: childAny.props?.width as string | number | undefined,
         })
       }
@@ -373,7 +370,7 @@ export default function MarkdownPreview({
   }
 
   return (
-    <div className="min-w-0 !max-w-[min(90vw,100%)] space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground [&_*]:!max-w-[min(85vw,100%)]">
+    <div className="max-w-90vw min-w-0 space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground **:max-w-[min(85vw,100%)]!">
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         remarkPlugins={[remarkGfm]}
@@ -426,7 +423,7 @@ export default function MarkdownPreview({
             return (
               <code
                 {...props}
-                className="break-words rounded bg-muted px-1 py-0.5 text-xs text-foreground"
+                className="rounded bg-muted px-1 py-0.5 text-xs break-words text-foreground"
               >
                 {children}
               </code>
@@ -478,7 +475,9 @@ export default function MarkdownPreview({
               />
             )
           },
-          li: (props) => <li {...props} className="ml-5 list-disc break-words" />,
+          li: (props) => (
+            <li {...props} className="ml-5 list-disc break-words" />
+          ),
           p: ({ children, ...props }) => {
             if (renderImageRow(children)) {
               return (
@@ -554,7 +553,7 @@ export default function MarkdownPreview({
             return (
               <p
                 {...props}
-                className="min-w-0 max-w-full text-sm leading-7 break-words text-muted-foreground"
+                className="max-w-full min-w-0 text-sm leading-7 break-words text-muted-foreground"
               >
                 {children}
               </p>
@@ -574,7 +573,7 @@ export default function MarkdownPreview({
             return (
               <div
                 {...props}
-                className="min-w-0 max-w-full text-sm leading-7 break-words text-muted-foreground"
+                className="max-w-full min-w-0 text-sm leading-7 break-words text-muted-foreground"
               >
                 {children}
               </div>
@@ -589,7 +588,9 @@ export default function MarkdownPreview({
               />
             </div>
           ),
-          td: (props) => <td {...props} className="border border-border px-3 py-2" />,
+          td: (props) => (
+            <td {...props} className="border border-border px-3 py-2" />
+          ),
           th: (props) => (
             <th
               {...props}
