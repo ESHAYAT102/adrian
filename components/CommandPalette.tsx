@@ -1159,10 +1159,6 @@ export default function CommandPalette({
             onContextMenu={(event) => event.preventDefault()}
           >
             <LiquidGlassLayer
-              radius={16}
-              depth={6}
-              blur={4}
-              strength={100}
               liquidClassName="bg-background/40"
               fallbackClassName="bg-background/40 backdrop-blur-md"
             />

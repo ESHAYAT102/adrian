@@ -43,6 +43,9 @@ type NavbarProps = {
   initialUnreadNotifications?: GitHubNotification[]
 }
 
+const navbarButtonClass =
+  "focus-visible:border-transparent focus-visible:ring-0"
+
 export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
   const { user } = useAuth()
   const { resolvedTheme, theme } = useThemeTransition()
@@ -101,7 +104,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
 
   return (
     <nav className="fixed z-50 flex w-full items-center justify-between overflow-hidden border-b border-foreground/10 px-4 py-4 md:px-8">
-      <LiquidGlassLayer depth={6} blur={4} strength={100} />
+      <LiquidGlassLayer />
       <CommandPalette
         open={isCommandOpen}
         onOpenChange={handleCommandOpenChange}
@@ -141,7 +144,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
       <div className="relative z-10 flex items-center gap-2">
         <BrowserContextMenu triggerClassName="inline-flex">
           <Button
-            className="rounded-full mr-2"
+            className={`mr-2 rounded-full ${navbarButtonClass}`}
             variant="ghost"
             title="Open command palette"
             onClick={() => {
@@ -154,7 +157,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           {user ? (
             <Button
               asChild
-              className="hidden cursor-default rounded-full sm:inline-flex"
+              className={`hidden cursor-default rounded-full sm:inline-flex ${navbarButtonClass}`}
               variant="ghost"
               title="Create new repository"
             >
@@ -176,7 +179,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           )}
         </div>
         <Button
-          className="hidden rounded-full md:flex"
+          className={`hidden rounded-full md:flex ${navbarButtonClass}`}
           variant="ghost"
           title={`Theme: ${getThemeLabel(currentTheme)}`}
           onClick={() => {
@@ -190,7 +193,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className="rounded-full"
+                className={`rounded-full ${navbarButtonClass}`}
                 variant="ghost"
                 size="icon"
               >
@@ -243,7 +246,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           <Button
             asChild
             variant="outline"
-            className="hidden rounded-full px-4 md:inline-flex"
+            className={`hidden rounded-full px-4 md:inline-flex ${navbarButtonClass}`}
           >
             <A href={authUrl}>Sign in</A>
           </Button>

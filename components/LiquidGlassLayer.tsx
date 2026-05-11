@@ -4,6 +4,7 @@ import type { CSSProperties } from "react"
 import { useEffect, useRef, useState } from "react"
 
 import { cn } from "@/lib/utils"
+import { LIQUID_GLASS_CONFIG } from "@/lib/liquid-glass-config"
 import { getDisplacementFilter } from "@/lib/liquid-glass"
 
 type LiquidGlassLayerProps = {
@@ -41,11 +42,11 @@ const canUseLiquidGlass = () => {
 }
 
 export default function LiquidGlassLayer({
-  radius = 0,
-  depth = 8,
-  blur = 8,
-  strength = 80,
-  chromaticAberration = 4,
+  radius = LIQUID_GLASS_CONFIG.radius,
+  depth = LIQUID_GLASS_CONFIG.depth,
+  blur = LIQUID_GLASS_CONFIG.blur,
+  strength = LIQUID_GLASS_CONFIG.strength,
+  chromaticAberration = LIQUID_GLASS_CONFIG.chromaticAberration,
   className,
   liquidClassName = "bg-background/40",
   fallbackClassName = "bg-background/75 backdrop-blur-md",

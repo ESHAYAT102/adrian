@@ -74,7 +74,7 @@ export default function NotificationsDrawer({
     <Drawer direction="right" open={open} onOpenChange={setOpen}>
       <DrawerTrigger asChild>
         <Button
-          className="rounded-full"
+          className="rounded-full focus-visible:border-transparent focus-visible:ring-0"
           variant="ghost"
           title="View notifications"
           data-ui-sound="off"
@@ -82,7 +82,7 @@ export default function NotificationsDrawer({
           <BellIcon />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="p-2 text-sm before:inset-2 before:rounded-2xl before:border before:border-border before:bg-popover before:shadow-xl data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-125">
+      <DrawerContent className="p-2 text-sm data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:max-w-125">
         <DrawerHeader className="gap-0 border-b border-border px-5 py-4">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 space-y-2">
@@ -94,7 +94,7 @@ export default function NotificationsDrawer({
             <div className="flex items-center gap-3 pt-0.5">
               <Button
                 variant="ghost"
-                className="h-auto rounded-none px-0 py-0 text-[13px] font-medium text-foreground hover:bg-transparent hover:text-foreground"
+                className="h-auto text-[13px] font-medium text-foreground hover:bg-transparent hover:text-foreground"
                 onClick={() => setUnreadOnly(!unreadOnly)}
               >
                 {unreadOnly ? "Show all" : "Show unread"}
