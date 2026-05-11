@@ -164,10 +164,10 @@ function SmartMedia({
     const baseClassName =
       variant === "inline"
         ? hasExplicitSize
-          ? "inline-block rounded-md bg-transparent align-middle object-contain"
+          ? "inline-block max-w-full rounded-md bg-transparent align-middle object-contain"
           : "inline-block max-h-8 w-auto rounded-md bg-transparent align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 rounded-xl bg-transparent object-contain"
+          ? "my-4 max-w-full rounded-xl bg-transparent object-contain"
           : "my-4 max-h-[32rem] w-full rounded-xl bg-transparent object-contain"
     return (
       <VideoPlayer
@@ -188,13 +188,13 @@ function SmartMedia({
   const baseClassName =
     variant === "inline"
       ? hasExplicitSize
-        ? "inline-block align-middle object-contain"
+        ? "inline-block max-w-full align-middle object-contain"
         : "inline-block max-h-8 w-auto align-middle object-contain"
       : isBadge
         ? "my-1 inline-block h-5 w-auto align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 block max-w-full rounded-xl object-contain"
-          : "my-4 block max-h-[32rem] max-w-full rounded-xl object-contain"
+          ? "my-4 block h-auto max-w-full rounded-xl object-contain"
+          : "my-4 block h-auto max-h-[32rem] max-w-full rounded-xl object-contain"
 
   return (
     <Image
@@ -367,7 +367,7 @@ export default function MarkdownPreview({
   }
 
   return (
-    <div className="space-y-4 text-sm leading-7 text-muted-foreground">
+    <div className="min-w-0 max-w-full space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground">
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         remarkPlugins={[remarkGfm]}
@@ -500,7 +500,7 @@ export default function MarkdownPreview({
                                 href={child.props?.href}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex"
+                                className="inline-flex max-w-full min-w-0"
                               >
                                 <SmartMedia
                                   alt={imageNode.props?.alt ?? "Markdown image"}

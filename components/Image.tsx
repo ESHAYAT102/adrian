@@ -6,13 +6,20 @@ import { toast } from "sonner"
 
 import BrowserContextMenu from "@/components/BrowserContextMenu"
 import { ContextMenuGroup, ContextMenuItem } from "@/components/ui/context-menu"
+import { cn } from "@/lib/utils"
 
 type ImageProps = React.ComponentProps<"img"> & {
   src: string
   alt: string
 }
 
-export default function Image({ src, alt, ...props }: ImageProps) {
+export default function Image({
+  src,
+  alt,
+  className,
+  style,
+  ...props
+}: ImageProps) {
   const openInNewTab = () => {
     window.open(src, "_blank", "noopener,noreferrer")
   }
@@ -58,7 +65,7 @@ export default function Image({ src, alt, ...props }: ImageProps) {
 
   return (
     <BrowserContextMenu
-      triggerClassName="inline"
+      triggerClassName="inline-block max-w-full min-w-0 align-middle"
       menuChildren={
         <>
           <ContextMenuGroup>
@@ -78,7 +85,13 @@ export default function Image({ src, alt, ...props }: ImageProps) {
         </>
       }
     >
-      <img src={src} alt={alt} {...props} />
+      <img
+        src={src}
+        alt={alt}
+        className={cn("h-auto max-w-full", className)}
+        style={{ ...style, maxWidth: "100%" }}
+        {...props}
+      />
     </BrowserContextMenu>
   )
 }

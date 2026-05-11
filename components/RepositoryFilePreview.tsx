@@ -466,7 +466,7 @@ function RepositoryFilePreviewContent({
   }
 
   return (
-    <Card className="rounded-2xl">
+    <Card className="min-w-0 rounded-2xl">
       <CardHeader className="border-b border-border px-3 py-3 sm:px-5">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <CardTitle className="flex min-w-0 items-center gap-3 text-sm sm:text-base">
@@ -610,13 +610,15 @@ function RepositoryFilePreviewContent({
         </div>
       </CardHeader>
 
-      <CardContent className="px-3 py-3 sm:px-5 sm:py-5">
+      <CardContent className="min-w-0 overflow-hidden px-3 py-3 sm:px-5 sm:py-5">
         {target.isImage && target.downloadUrl ? (
-          <Image
-            alt={target.name}
-            src={target.downloadUrl}
-            className="block max-h-[70vh] max-w-full rounded-xl object-contain"
-          />
+          <div className="flex max-w-full justify-center overflow-hidden">
+            <Image
+              alt={target.name}
+              src={target.downloadUrl}
+              className="block h-auto max-h-[70vh] max-w-full rounded-xl object-contain"
+            />
+          </div>
         ) : target.isVideo && target.downloadUrl ? (
           <VideoPlayer
             src={target.downloadUrl}
