@@ -51,6 +51,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -269,6 +270,11 @@ function RepositoryFilePreviewContent({
     toast.success("Download started")
   }
 
+  const handleOpenGitHub = () => {
+    if (!target.htmlUrl) return
+    window.open(target.htmlUrl, "_blank", "noopener,noreferrer")
+  }
+
   const handleCopyFilePath = async () => {
     if (!target) return
 
@@ -468,16 +474,114 @@ function RepositoryFilePreviewContent({
   return (
     <Card className="min-w-0 rounded-2xl">
       <CardHeader className="border-b border-border px-3 py-3 sm:px-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <CardTitle className="flex min-w-0 items-center gap-3 text-sm sm:text-base">
-            {getRepositoryItemIcon({
-              name: target.name,
-              type: "file",
-            })}
-            <span className="truncate">{target.path}</span>
-          </CardTitle>
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <CardTitle className="flex min-w-0 items-center gap-3 text-sm sm:text-base">
+              {getRepositoryItemIcon({
+                name: target.name,
+                type: "file",
+              })}
+              <span className="truncate">{target.path}</span>
+            </CardTitle>
 
-          <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+            <div className="ml-auto sm:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-sm"
+                    className="rounded-xl"
+                    title="File actions"
+                    aria-label="File actions"
+                  >
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+
+                {showsCodeActions && isEditing ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={!isDirty || isSaving}
+                      onClick={() => setIsCommitDialogOpen(true)}
+                    >
+                      {isSaving ? <Loader2 className="animate-spin" /> : <Check />}
+                      Commit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleRequestCancelEditing}>
+                      <X />
+                      Cancel editing
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                ) : showsCodeActions ? (
+                  <>
+                    <DropdownMenuItem
+                      disabled={!canEdit}
+                      onClick={handleStartEditing}
+                    >
+                      <Edit3 />
+                      Edit file
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                ) : null}
+
+                <DropdownMenuItem onClick={handleCopy}>
+                  <Copy />
+                  Copy file
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownload}>
+                  <Download />
+                  Download file
+                </DropdownMenuItem>
+                {target.htmlUrl ? (
+                  <DropdownMenuItem onClick={handleOpenGitHub}>
+                    <SquareArrowOutUpRight />
+                    Open in GitHub
+                  </DropdownMenuItem>
+                ) : null}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleCopyFilePath}>
+                  <Copy />
+                  Copy file path
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleCopyAppUrl}>
+                  <SquareArrowOutUpRight />
+                  Copy file URL
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                  disabled={!canEdit}
+                >
+                  <X />
+                  Delete file
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          </div>
+
+          {showsPreviewToggle ? (
+            <div className="inline-flex w-fit min-w-0 items-center gap-1 rounded-lg border border-border bg-muted/20 p-1 sm:hidden">
+              <ToggleButton
+                active={activeMode === "preview"}
+                onClick={() => setPreviewMode("preview")}
+              >
+                Preview
+              </ToggleButton>
+              <ToggleButton
+                active={activeMode === "code"}
+                onClick={() => setPreviewMode("code")}
+              >
+                Code
+              </ToggleButton>
+            </div>
+          ) : null}
+
+          <div className="ml-auto hidden w-full flex-wrap items-center gap-2 sm:flex md:w-auto md:justify-end">
             {showsPreviewToggle ? (
               <div className="inline-flex min-w-0 items-center gap-1 rounded-lg border border-border bg-muted/20 p-1">
                 <ToggleButton
@@ -663,7 +767,7 @@ function RepositoryFilePreviewContent({
             </div>
           </div>
         ) : (
-          <div className="relative min-h-[52vh] overflow-hidden rounded-xl border border-border bg-[#151515] sm:min-h-[60vh]">
+          <div className="relative min-h-[52vh] w-full max-w-[90vw] overflow-hidden rounded-xl border border-border bg-[#151515] sm:min-h-[60vh]">
             <div
               aria-hidden="true"
               className="absolute inset-0 overflow-auto select-text"

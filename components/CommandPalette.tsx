@@ -1420,16 +1420,13 @@ export default function CommandPalette({
                         }}
                         className="flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm text-foreground transition hover:bg-accent/30 aria-selected:bg-accent/50"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 items-center gap-3">
                           <span className="text-muted-foreground">
                             {item.command}
                           </span>
-                          <span className="text-muted-foreground">
-                            {item.description}
-                          </span>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {item.placeholder}
+                        <span className="ml-auto hidden truncate text-right text-muted-foreground sm:block">
+                          {item.description}
                         </span>
                       </Command.Item>
                     ))}

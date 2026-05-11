@@ -164,11 +164,11 @@ function SmartMedia({
     const baseClassName =
       variant === "inline"
         ? hasExplicitSize
-          ? "inline-block max-w-full rounded-md bg-transparent align-middle object-contain"
+          ? "inline-block max-w-[80vw] rounded-md bg-transparent align-middle object-contain"
           : "inline-block max-h-8 w-auto rounded-md bg-transparent align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 max-w-full rounded-xl bg-transparent object-contain"
-          : "my-4 max-h-[32rem] w-full rounded-xl bg-transparent object-contain"
+          ? "my-4 max-w-[80vw] rounded-xl bg-transparent object-contain"
+          : "my-4 max-h-[32rem] w-full max-w-[80vw] rounded-xl bg-transparent object-contain"
     return (
       <VideoPlayer
         className={[baseClassName, className].filter(Boolean).join(" ")}
@@ -177,7 +177,7 @@ function SmartMedia({
           setMode(explicitImage || attachment ? "image" : "fallback")
         }
         src={src}
-        style={style}
+        style={{ ...style, maxWidth: "80vw" }}
         title={alt || "Markdown video"}
         width={width}
         videoClassName="max-h-[inherit]"
@@ -188,13 +188,13 @@ function SmartMedia({
   const baseClassName =
     variant === "inline"
       ? hasExplicitSize
-        ? "inline-block max-w-full align-middle object-contain"
+        ? "inline-block max-w-[80vw] align-middle object-contain"
         : "inline-block max-h-8 w-auto align-middle object-contain"
       : isBadge
         ? "my-1 inline-block h-5 w-auto align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 block h-auto max-w-full rounded-xl object-contain"
-          : "my-4 block h-auto max-h-[32rem] max-w-full rounded-xl object-contain"
+          ? "my-4 block h-auto max-w-[80vw] rounded-xl object-contain"
+          : "my-4 block h-auto max-h-[32rem] max-w-[80vw] rounded-xl object-contain"
 
   return (
     <Image
@@ -205,7 +205,7 @@ function SmartMedia({
       }
       height={height}
       src={src}
-      style={style}
+      style={{ ...style, maxWidth: "80vw" }}
       width={width}
     />
   )
@@ -226,7 +226,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative w-full max-w-[90vw]">
       <Button
         type="button"
         variant="outline"
@@ -236,7 +236,7 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
       >
         {copied ? <Check /> : <Copy />}
       </Button>
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
+      <div className="max-w-[90vw] overflow-x-auto rounded-xl border border-border bg-card">
         <SyntaxHighlighter
           language={language}
           style={oneDark}
@@ -246,6 +246,8 @@ function CodeBlock({ code, language }: { code: string; language?: string }) {
             padding: "14px 56px 14px 16px",
             fontSize: "12px",
             lineHeight: "1.6",
+            maxWidth: "90vw",
+            overflowX: "auto",
           }}
           codeTagProps={{
             style: {
@@ -400,7 +402,7 @@ export default function MarkdownPreview({
               <A
                 {...props}
                 href={resolvedHref ?? "#"}
-                className="text-foreground underline underline-offset-4"
+                className="break-words text-foreground underline underline-offset-4"
                 target={resolvedHref?.startsWith("/") ? undefined : "_blank"}
                 rel={resolvedHref?.startsWith("/") ? undefined : "noreferrer"}
               >
@@ -420,20 +422,29 @@ export default function MarkdownPreview({
             return (
               <code
                 {...props}
-                className="rounded bg-muted px-1 py-0.5 text-xs text-foreground"
+                className="break-words rounded bg-muted px-1 py-0.5 text-xs text-foreground"
               >
                 {children}
               </code>
             )
           },
           h1: (props) => (
-            <h1 {...props} className="text-2xl font-semibold text-foreground" />
+            <h1
+              {...props}
+              className="text-2xl font-semibold break-words text-foreground"
+            />
           ),
           h2: (props) => (
-            <h2 {...props} className="text-xl font-semibold text-foreground" />
+            <h2
+              {...props}
+              className="text-xl font-semibold break-words text-foreground"
+            />
           ),
           h3: (props) => (
-            <h3 {...props} className="text-lg font-semibold text-foreground" />
+            <h3
+              {...props}
+              className="text-lg font-semibold break-words text-foreground"
+            />
           ),
           img: ({ alt, src, width, height, className, style }) => {
             if (typeof src !== "string") return null
@@ -457,13 +468,13 @@ export default function MarkdownPreview({
               />
             )
           },
-          li: (props) => <li {...props} className="ml-5 list-disc" />,
+          li: (props) => <li {...props} className="ml-5 list-disc break-words" />,
           p: ({ children, ...props }) => {
             if (renderImageRow(children)) {
               return (
                 <span
                   {...props}
-                  className="inline-flex flex-wrap items-center gap-3 text-sm leading-7 text-muted-foreground"
+                  className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-3 text-sm leading-7 break-words text-muted-foreground"
                 >
                   {Array.isArray(children)
                     ? children.map((child, index) => {
@@ -531,7 +542,10 @@ export default function MarkdownPreview({
             }
 
             return (
-              <p {...props} className="text-sm leading-7 text-muted-foreground">
+              <p
+                {...props}
+                className="min-w-0 max-w-full text-sm leading-7 break-words text-muted-foreground"
+              >
                 {children}
               </p>
             )
@@ -541,22 +555,28 @@ export default function MarkdownPreview({
               return (
                 <div
                   {...props}
-                  className="flex flex-wrap items-center gap-3 text-sm leading-7 text-muted-foreground"
+                  className="flex max-w-full min-w-0 flex-wrap items-center gap-3 text-sm leading-7 break-words text-muted-foreground"
                 >
                   {children}
                 </div>
               )
             }
             return (
-              <div {...props} className="text-sm leading-7 text-muted-foreground">
+              <div
+                {...props}
+                className="min-w-0 max-w-full text-sm leading-7 break-words text-muted-foreground"
+              >
                 {children}
               </div>
             )
           },
           pre: (props) => <pre {...props} className="my-4" />,
           table: (props) => (
-            <div className="overflow-x-auto">
-              <table {...props} className="w-full border-collapse text-left" />
+            <div className="max-w-full overflow-x-auto">
+              <table
+                {...props}
+                className="w-full min-w-max border-collapse text-left"
+              />
             </div>
           ),
           td: (props) => <td {...props} className="border border-border px-3 py-2" />,

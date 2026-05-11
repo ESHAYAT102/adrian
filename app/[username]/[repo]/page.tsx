@@ -612,8 +612,8 @@ export default async function RepositoryPage({
                     remoteUrl={repository.html_url}
                   />
                 ) : (
-                  <div className="space-y-4 lg:space-y-0">
-                    <div className="space-y-4 lg:hidden">
+                  <div className="min-w-0 space-y-4 lg:space-y-0">
+                    <div className="min-w-0 space-y-4 lg:hidden">
                       <RepositoryFilePreview
                         branch={contentRef}
                         canEdit={canEditRepository}
@@ -625,7 +625,7 @@ export default async function RepositoryPage({
 
                       {contents.length > 0 ? (
                         <details
-                          className="group overflow-hidden rounded-2xl border bg-card shadow-sm"
+                          className="group min-w-0 overflow-hidden rounded-2xl border bg-card shadow-sm"
                           open={!selectedItem && !readme}
                         >
                           <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium">
@@ -680,7 +680,7 @@ export default async function RepositoryPage({
                         />
                       </div>
 
-                      <div className="space-y-6">
+                      <div className="min-w-0 space-y-6">
                         <RepositoryFilePreview
                           branch={contentRef}
                           canEdit={canEditRepository}
