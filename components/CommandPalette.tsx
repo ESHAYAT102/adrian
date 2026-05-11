@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner"
 
 import { useAuth } from "@/components/AuthProvider"
+import LiquidGlassLayer from "@/components/LiquidGlassLayer"
 import {
   UI_SOUNDS_CHANGED_EVENT,
   areUiSoundsDisabled,
@@ -1185,13 +1186,21 @@ export default function CommandPalette({
           <Command
             shouldFilter={false}
             ref={dialogRef}
-            className="fixed top-[15vh] left-1/2 z-60 w-[min(96vw,720px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 shadow-2xl backdrop-blur-md"
+            className="fixed top-[15vh] left-1/2 z-60 w-[min(96vw,720px)] -translate-x-1/2 overflow-hidden rounded-2xl border border-foreground/10 shadow-2xl"
             onContextMenu={(event) => event.preventDefault()}
           >
+            <LiquidGlassLayer
+              radius={16}
+              depth={8}
+              blur={8}
+              strength={78}
+              liquidClassName="bg-background/40"
+              fallbackClassName="bg-background/40 backdrop-blur-md"
+            />
             <DialogPrimitive.Title className="sr-only">
               Command palette
             </DialogPrimitive.Title>
-            <div className="flex items-center gap-3 border-b border-border/80 px-4 py-3">
+            <div className="relative z-10 flex items-center gap-3 border-b border-border/80 px-4 py-3">
               <CommandIcon className="size-4 text-muted-foreground" />
               <Command.Input
                 value={value}
@@ -1240,7 +1249,7 @@ export default function CommandPalette({
             </div>
 
             <Command.List
-              className={`h-auto ${listHeightClass} overflow-y-auto p-2`}
+              className={`relative z-10 h-auto ${listHeightClass} overflow-y-auto p-2`}
             >
               <Command.Empty className="px-3 py-4 text-sm text-muted-foreground">
                 No results found.

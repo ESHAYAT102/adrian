@@ -7,6 +7,7 @@ import A from "@/components/A"
 import { useAuth } from "@/components/AuthProvider"
 import BrowserContextMenu from "@/components/BrowserContextMenu"
 import CommandPalette from "@/components/CommandPalette"
+import LiquidGlassLayer from "@/components/LiquidGlassLayer"
 import NotificationsDrawer from "@/components/NotificationsDrawer"
 import { Button } from "@/components/ui/button"
 import {
@@ -99,14 +100,15 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
   const authUrl = "/api/auth/github/login?callbackUrl=/"
 
   return (
-    <nav className="fixed z-50 flex w-full items-center justify-between border-b border-foreground/10 bg-background/75 px-4 py-4 backdrop-blur-md md:px-8">
+    <nav className="fixed z-50 flex w-full items-center justify-between overflow-hidden border-b border-foreground/10 px-4 py-4 md:px-8">
+      <LiquidGlassLayer depth={6} blur={8} strength={72} />
       <CommandPalette
         open={isCommandOpen}
         onOpenChange={handleCommandOpenChange}
         onOpenNotificationsChange={setIsNotificationsOpen}
         initialValue={commandInitialValue}
       />
-      <div className="flex items-center">
+      <div className="relative z-10 flex items-center">
         <BrowserContextMenu
           triggerClassName="flex items-center justify-center"
           menuChildren={
@@ -136,7 +138,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           </Link>
         </BrowserContextMenu>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="relative z-10 flex items-center gap-2">
         <BrowserContextMenu triggerClassName="inline-flex">
           <Button
             className="rounded-full mr-2"
