@@ -101,7 +101,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
 
   return (
     <nav className="fixed z-50 flex w-full items-center justify-between overflow-hidden border-b border-foreground/10 px-4 py-4 md:px-8">
-      <LiquidGlassLayer depth={6} blur={8} strength={72} />
+      <LiquidGlassLayer depth={6} blur={4} strength={100} />
       <CommandPalette
         open={isCommandOpen}
         onOpenChange={handleCommandOpenChange}

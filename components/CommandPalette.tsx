@@ -1160,9 +1160,9 @@ export default function CommandPalette({
           >
             <LiquidGlassLayer
               radius={16}
-              depth={8}
-              blur={8}
-              strength={78}
+              depth={6}
+              blur={4}
+              strength={100}
               liquidClassName="bg-background/40"
               fallbackClassName="bg-background/40 backdrop-blur-md"
             />
