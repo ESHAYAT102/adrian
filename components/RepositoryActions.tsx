@@ -184,11 +184,7 @@ export default function RepositoryActions({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button
-        asChild
-        variant="outline"
-        className="w-full rounded-xl sm:w-auto"
-      >
+      <Button asChild variant="outline" className="w-full rounded-xl sm:w-auto">
         <A href={zipUrl}>
           <Download />
           ZIP

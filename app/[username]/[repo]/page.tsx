@@ -125,7 +125,9 @@ function buildRequestedGitHubUrl({
   }
 
   if (tab === "commits") {
-    return ref ? `${base}/commits/${encodeURIComponent(ref)}` : `${base}/commits`
+    return ref
+      ? `${base}/commits/${encodeURIComponent(ref)}`
+      : `${base}/commits`
   }
   if (tab === "issues") return `${base}/issues`
   if (tab === "pulls") return `${base}/pulls`
@@ -235,7 +237,8 @@ export default async function RepositoryPage({
   searchParams,
 }: RepositoryPageProps) {
   const { username, repo } = await params
-  const { branch, commit, discussion, path, tab, issue, pr } = await searchParams
+  const { branch, commit, discussion, path, tab, issue, pr } =
+    await searchParams
   const sessionUser = await getSessionUser()
   const commitRef = commit?.trim() || undefined
   const isAuthenticated = Boolean(sessionUser?.accessToken)
@@ -442,7 +445,7 @@ export default async function RepositoryPage({
             <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
               <div className="space-y-3">
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <h1 className="flex min-w-0 flex-wrap items-center break-words text-xl font-semibold tracking-tight sm:text-2xl md:text-3xl">
+                  <h1 className="flex min-w-0 flex-wrap items-center text-xl font-semibold tracking-tight break-words sm:text-2xl md:text-3xl">
                     <BrowserContextMenu
                       triggerClassName="inline-flex"
                       menuChildren={

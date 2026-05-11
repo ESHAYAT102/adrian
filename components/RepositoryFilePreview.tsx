@@ -472,7 +472,7 @@ function RepositoryFilePreviewContent({
   }
 
   return (
-    <Card className="w-90vw max-w-90vw min-w-0 rounded-2xl pr-2">
+    <Card className="w-80vw max-w-90vw min-w-0 rounded-2xl pr-2">
       <CardHeader className="border-b border-border px-3 py-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
