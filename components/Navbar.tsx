@@ -154,7 +154,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           {user ? (
             <Button
               asChild
-              className="rounded-full cursor-default"
+              className="hidden cursor-default rounded-full sm:inline-flex"
               variant="ghost"
               title="Create new repository"
             >

@@ -148,7 +148,7 @@ function SmartMedia({
   const hasExplicitSize = Boolean(width || height)
   const blockMediaStyle: React.CSSProperties =
     variant === "block" && !isBadge
-      ? { ...style, width: "85vw", maxWidth: "85vw" }
+      ? { ...style, width: "min(85vw, 100%)", maxWidth: "100%" }
       : { ...style, maxWidth: "min(85vw, 100%)" }
 
   if (mode === "fallback") {
@@ -171,8 +171,8 @@ function SmartMedia({
           ? "inline-block max-w-[min(85vw,100%)] rounded-md bg-transparent align-middle object-contain"
           : "inline-block max-h-8 w-auto rounded-md bg-transparent align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 w-[85vw] max-w-[85vw] rounded-xl bg-transparent object-contain"
-          : "my-4 max-h-[32rem] w-[85vw] max-w-[85vw] rounded-xl bg-transparent object-contain"
+          ? "my-4 w-[min(85vw,100%)] max-w-full rounded-xl bg-transparent object-contain"
+          : "my-4 max-h-[32rem] w-[min(85vw,100%)] max-w-full rounded-xl bg-transparent object-contain"
     return (
       <VideoPlayer
         className={[baseClassName, className].filter(Boolean).join(" ")}
@@ -197,8 +197,8 @@ function SmartMedia({
       : isBadge
         ? "my-1 inline-block h-5 w-auto align-middle object-contain"
         : hasExplicitSize
-          ? "my-4 block h-auto w-[85vw] max-w-[85vw] rounded-xl object-contain"
-          : "my-4 block h-auto max-h-[32rem] w-[85vw] max-w-[85vw] rounded-xl object-contain"
+          ? "my-4 block h-auto w-[min(85vw,100%)] max-w-full rounded-xl object-contain"
+          : "my-4 block h-auto max-h-[32rem] w-[min(85vw,100%)] max-w-full rounded-xl object-contain"
 
   return (
     <Image
@@ -373,7 +373,7 @@ export default function MarkdownPreview({
   }
 
   return (
-    <div className="min-w-0 !max-w-[90vw] space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground [&_*]:!max-w-[85vw]">
+    <div className="min-w-0 !max-w-[min(90vw,100%)] space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground [&_*]:!max-w-[min(85vw,100%)]">
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         remarkPlugins={[remarkGfm]}
@@ -453,7 +453,7 @@ export default function MarkdownPreview({
           hr: (props) => (
             <hr
               {...props}
-              className="my-6 w-[85vw] max-w-[85vw] border-border"
+              className="my-6 w-[min(85vw,100%)] max-w-full border-border"
             />
           ),
           img: ({ alt, src, width, height, className, style }) => {
