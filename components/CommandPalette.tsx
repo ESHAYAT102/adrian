@@ -10,7 +10,6 @@ import {
   Command as CommandIcon,
   Copy,
   LogIn,
-  LogOut,
   Moon,
   Palette,
   Plus,
@@ -300,18 +299,8 @@ export default function CommandPalette({
   }, [items, onOpenChange, onOpenNotificationsChange, router])
 
   const actionEntries = useMemo<CommandAction[]>(() => {
-    const signItem = user
-      ? {
-          id: "sign-out",
-          label: "Sign out",
-          icon: <LogOut className="size-4 text-muted-foreground" />,
-          onSelect: () => {
-            markCommandUsed("sign-out")
-            onOpenChange(false)
-            window.location.href = "/api/auth/signout?callbackUrl=/"
-          },
-          keywords: ["logout", "account"],
-        }
+    const authItem = user
+      ? null
       : {
           id: "sign-in",
           label: "Sign in",
@@ -465,7 +454,7 @@ export default function CommandPalette({
         },
         keywords: ["shortcuts", "keys", "hotkeys", "keyboard"],
       },
-      signItem,
+      ...(authItem ? [authItem] : []),
     ]
   }, [
     currentAppearance,
@@ -649,14 +638,6 @@ export default function CommandPalette({
         onSelect: () => setValue("/signin"),
         requiresArgument: false,
       },
-      {
-        id: "slash-signout",
-        command: "/signout",
-        description: "Sign out",
-        placeholder: "/signout",
-        onSelect: () => setValue("/signout"),
-        requiresArgument: false,
-      },
     ],
     []
   )
@@ -773,12 +754,6 @@ export default function CommandPalette({
     })
     map.set("signin", () => {
       window.location.href = "/api/auth/github/login?callbackUrl=/"
-    })
-    map.set("sign out", () => {
-      window.location.href = "/api/auth/signout?callbackUrl=/"
-    })
-    map.set("signout", () => {
-      window.location.href = "/api/auth/signout?callbackUrl=/"
     })
     map.set("open in github", () => {
       const path = window.location.pathname
@@ -966,12 +941,6 @@ export default function CommandPalette({
 
       setValue("/themes ")
       requestAnimationFrame(() => inputRef.current?.focus())
-      return
-    }
-
-    if (["signout", "logout"].includes(command)) {
-      onOpenChange(false)
-      window.location.href = "/api/auth/signout?callbackUrl=/"
       return
     }
 
