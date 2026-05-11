@@ -472,7 +472,7 @@ function RepositoryFilePreviewContent({
   }
 
   return (
-    <Card className="w-full max-w-full min-w-0 rounded-2xl">
+    <Card className="w-90vw max-w-90vw min-w-0 rounded-2xl pr-2">
       <CardHeader className="border-b border-border px-3 py-3 sm:px-5">
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
@@ -499,69 +499,72 @@ function RepositoryFilePreviewContent({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
+                  {showsCodeActions && isEditing ? (
+                    <>
+                      <DropdownMenuItem
+                        disabled={!isDirty || isSaving}
+                        onClick={() => setIsCommitDialogOpen(true)}
+                      >
+                        {isSaving ? (
+                          <Loader2 className="animate-spin" />
+                        ) : (
+                          <Check />
+                        )}
+                        Commit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleRequestCancelEditing}>
+                        <X />
+                        Cancel editing
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : showsCodeActions ? (
+                    <>
+                      <DropdownMenuItem
+                        disabled={!canEdit}
+                        onClick={handleStartEditing}
+                      >
+                        <Edit3 />
+                        Edit file
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  ) : null}
 
-                {showsCodeActions && isEditing ? (
-                  <>
-                    <DropdownMenuItem
-                      disabled={!isDirty || isSaving}
-                      onClick={() => setIsCommitDialogOpen(true)}
-                    >
-                      {isSaving ? <Loader2 className="animate-spin" /> : <Check />}
-                      Commit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleRequestCancelEditing}>
-                      <X />
-                      Cancel editing
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                ) : showsCodeActions ? (
-                  <>
-                    <DropdownMenuItem
-                      disabled={!canEdit}
-                      onClick={handleStartEditing}
-                    >
-                      <Edit3 />
-                      Edit file
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                ) : null}
-
-                <DropdownMenuItem onClick={handleCopy}>
-                  <Copy />
-                  Copy file
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownload}>
-                  <Download />
-                  Download file
-                </DropdownMenuItem>
-                {target.htmlUrl ? (
-                  <DropdownMenuItem onClick={handleOpenGitHub}>
-                    <SquareArrowOutUpRight />
-                    Open in GitHub
+                  <DropdownMenuItem onClick={handleCopy}>
+                    <Copy />
+                    Copy file
                   </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleCopyFilePath}>
-                  <Copy />
-                  Copy file path
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleCopyAppUrl}>
-                  <SquareArrowOutUpRight />
-                  Copy file URL
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={() => setIsDeleteDialogOpen(true)}
-                  disabled={!canEdit}
-                >
-                  <X />
-                  Delete file
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  <DropdownMenuItem onClick={handleDownload}>
+                    <Download />
+                    Download file
+                  </DropdownMenuItem>
+                  {target.htmlUrl ? (
+                    <DropdownMenuItem onClick={handleOpenGitHub}>
+                      <SquareArrowOutUpRight />
+                      Open in GitHub
+                    </DropdownMenuItem>
+                  ) : null}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleCopyFilePath}>
+                    <Copy />
+                    Copy file path
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleCopyAppUrl}>
+                    <SquareArrowOutUpRight />
+                    Copy file URL
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    disabled={!canEdit}
+                  >
+                    <X />
+                    Delete file
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {showsPreviewToggle ? (
@@ -744,7 +747,7 @@ function RepositoryFilePreviewContent({
             <div className="flex h-full">
               <div
                 aria-hidden="true"
-                className="h-full w-14 shrink-0 overflow-hidden border-r border-border/70 bg-black/10 px-3 py-4 text-right font-mono text-[13px] leading-[1.5] text-muted-foreground/60 select-none"
+                className="h-full w-14 shrink-0 overflow-hidden border-r border-border/70 bg-black/10 px-3 py-4 text-right font-mono text-[13px] leading-normal text-muted-foreground/60 select-none"
               >
                 <div
                   style={{ transform: `translateY(-${editorScrollTop}px)` }}
@@ -762,7 +765,7 @@ function RepositoryFilePreviewContent({
                 onChange={(event) => setContent(event.target.value)}
                 onKeyDown={handleTextareaVsCodeKeydown}
                 onScroll={handleEditorScroll}
-                className="h-full w-full resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[13px] leading-[1.5] whitespace-pre text-foreground outline-none"
+                className="h-full w-full resize-none overflow-auto border-0 bg-transparent p-4 font-mono text-[13px] leading-normal whitespace-pre text-foreground outline-none"
               />
             </div>
           </div>
