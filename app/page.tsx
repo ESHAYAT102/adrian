@@ -31,7 +31,7 @@ export default async function Page({ searchParams }: HomePageProps) {
     <BrowserContextMenu triggerClassName="block min-h-screen w-full">
       <div className="min-h-screen bg-background text-foreground">
         <Navbar initialUnreadNotifications={unreadNotifications ?? []} />
-        <main className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 pt-24 pb-10 md:px-8">
+        <main className="mx-auto flex w-full max-w-[90vw] flex-col gap-8 px-4 pt-24 pb-10 md:px-8">
           {user ? (
             <>
               <div className="space-y-6">
