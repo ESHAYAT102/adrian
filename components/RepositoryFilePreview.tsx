@@ -714,7 +714,7 @@ function RepositoryFilePreviewContent({
         </div>
       </CardHeader>
 
-      <CardContent className="min-w-0 overflow-hidden px-3 py-3 sm:px-5 sm:py-5">
+      <CardContent className="mr-3 min-w-0 overflow-hidden py-3 pr-0 pl-3 sm:mr-5 sm:py-5 sm:pr-0 sm:pl-5">
         {target.isImage && target.downloadUrl ? (
           <div className="flex max-w-full justify-center overflow-hidden">
             <Image
