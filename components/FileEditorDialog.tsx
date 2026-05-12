@@ -1,6 +1,13 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import {
+  type ChangeEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MutableRefObject,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { useRouter } from "next/navigation"
 import { Edit3, Loader2, Save } from "lucide-react"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
@@ -30,6 +37,14 @@ type FileEditorDialogProps = {
   repo: string
   sha: string
 }
+
+type EditorSnapshot = {
+  content: string
+  selectionEnd: number
+  selectionStart: number
+}
+
+const MAX_HISTORY_ENTRIES = 100
 
 function getLanguageFromPath(path: string) {
   const normalizedPath = path.toLowerCase()
@@ -69,12 +84,117 @@ export default function FileEditorDialog({
   const [commitMessage, setCommitMessage] = useState(`Update ${path}`)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
   const highlightRef = useRef<HTMLDivElement | null>(null)
+  const undoStackRef = useRef<EditorSnapshot[]>([])
+  const redoStackRef = useRef<EditorSnapshot[]>([])
+  const lastSelectionRef = useRef({ selectionEnd: 0, selectionStart: 0 })
   const language = useMemo(() => getLanguageFromPath(path), [path])
 
   const syncScroll = () => {
     if (!textareaRef.current || !highlightRef.current) return
     highlightRef.current.scrollTop = textareaRef.current.scrollTop
     highlightRef.current.scrollLeft = textareaRef.current.scrollLeft
+  }
+
+  const rememberSelection = (textarea: HTMLTextAreaElement | null) => {
+    if (!textarea) return
+
+    lastSelectionRef.current = {
+      selectionEnd: textarea.selectionEnd,
+      selectionStart: textarea.selectionStart,
+    }
+  }
+
+  const pushHistory = (
+    stack: MutableRefObject<EditorSnapshot[]>,
+    snapshot: EditorSnapshot
+  ) => {
+    stack.current.push(snapshot)
+    if (stack.current.length > MAX_HISTORY_ENTRIES) {
+      stack.current.shift()
+    }
+  }
+
+  const restoreSnapshot = (snapshot: EditorSnapshot) => {
+    setContent(snapshot.content)
+    window.requestAnimationFrame(() => {
+      const textarea = textareaRef.current
+      if (!textarea) return
+
+      textarea.setSelectionRange(snapshot.selectionStart, snapshot.selectionEnd)
+      rememberSelection(textarea)
+      syncScroll()
+    })
+  }
+
+  const getCurrentSnapshot = (): EditorSnapshot => {
+    const textarea = textareaRef.current
+
+    return {
+      content,
+      selectionEnd: textarea?.selectionEnd ?? lastSelectionRef.current.selectionEnd,
+      selectionStart:
+        textarea?.selectionStart ?? lastSelectionRef.current.selectionStart,
+    }
+  }
+
+  const undoEdit = () => {
+    const snapshot = undoStackRef.current.pop()
+    if (!snapshot) return false
+
+    pushHistory(redoStackRef, getCurrentSnapshot())
+    restoreSnapshot(snapshot)
+    return true
+  }
+
+  const redoEdit = () => {
+    const snapshot = redoStackRef.current.pop()
+    if (!snapshot) return false
+
+    pushHistory(undoStackRef, getCurrentSnapshot())
+    restoreSnapshot(snapshot)
+    return true
+  }
+
+  const handleEditorChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    const nextContent = event.target.value
+
+    if (nextContent !== content) {
+      pushHistory(undoStackRef, {
+        content,
+        selectionEnd: lastSelectionRef.current.selectionEnd,
+        selectionStart: lastSelectionRef.current.selectionStart,
+      })
+      redoStackRef.current = []
+    }
+
+    setContent(nextContent)
+    rememberSelection(event.target)
+  }
+
+  const handleEditorKeyDown = (
+    event: ReactKeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    const isShortcutKey = event.ctrlKey || event.metaKey
+    const key = event.key.toLowerCase()
+
+    if (isShortcutKey && !event.altKey && key === "z") {
+      event.preventDefault()
+      if (event.shiftKey) {
+        redoEdit()
+      } else {
+        undoEdit()
+      }
+      return
+    }
+
+    if (isShortcutKey && !event.altKey && key === "y") {
+      event.preventDefault()
+      redoEdit()
+      return
+    }
+
+    rememberSelection(event.currentTarget)
+    handleTextareaVsCodeKeydown(event)
   }
 
   const handleSave = async () => {
@@ -203,9 +323,13 @@ export default function FileEditorDialog({
                 spellCheck={false}
                 value={content}
                 disabled={isSaving}
-                onChange={(event) => setContent(event.target.value)}
-                onKeyDown={handleTextareaVsCodeKeydown}
+                onChange={handleEditorChange}
+                onClick={(event) => rememberSelection(event.currentTarget)}
+                onFocus={(event) => rememberSelection(event.currentTarget)}
+                onKeyDown={handleEditorKeyDown}
+                onKeyUp={(event) => rememberSelection(event.currentTarget)}
                 onScroll={syncScroll}
+                onSelect={(event) => rememberSelection(event.currentTarget)}
                 className="absolute inset-0 h-full min-h-0 resize-none border-0 bg-transparent px-14 py-4 font-mono text-sm leading-6 text-transparent caret-white shadow-none outline-none ring-0 selection:bg-white/20 selection:text-transparent focus-visible:ring-0"
               />
             </div>

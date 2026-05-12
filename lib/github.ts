@@ -115,6 +115,16 @@ export type GitHubRepository = {
   url: string
 }
 
+export type GitHubRepositoryPagesStatus =
+  | "built"
+  | "building"
+  | "errored"
+  | "unknown"
+
+type GitHubRepositoryPages = {
+  status?: string | null
+}
+
 export type GitHubBranch = {
   name: string
 }
@@ -365,6 +375,10 @@ const selectedItemCache = new Map<
 >()
 const profileCache = new Map<string, CacheEntry<GitHubProfile>>()
 const repositoryCache = new Map<string, CacheEntry<GitHubRepository>>()
+const repositoryPagesStatusCache = new Map<
+  string,
+  CacheEntry<GitHubRepositoryPagesStatus>
+>()
 
 function readCache<T>(cache: Map<string, CacheEntry<T>>, key: string) {
   const entry = cache.get(key)
@@ -1130,6 +1144,32 @@ export async function getGitHubRepositoryLanguages(
       accessToken
     )) ?? {}
   )
+}
+
+export async function getGitHubRepositoryPagesStatus(
+  owner: string,
+  repo: string,
+  sessionUser: SessionUser | null
+): Promise<GitHubRepositoryPagesStatus> {
+  const accessToken = sessionUser?.accessToken
+  const cacheKey = `pages:${owner}/${repo}`
+  const cachedStatus = readCache(repositoryPagesStatusCache, cacheKey)
+
+  if (cachedStatus) return cachedStatus
+
+  const { data } = await fetchJsonWithStatus<GitHubRepositoryPages>(
+    `https://api.github.com/repos/${owner}/${repo}/pages`,
+    accessToken
+  )
+  const status =
+    data?.status === "built" ||
+    data?.status === "building" ||
+    data?.status === "errored"
+      ? data.status
+      : "unknown"
+
+  writeCache(repositoryPagesStatusCache, cacheKey, status, REPO_CACHE_TTL)
+  return status
 }
 
 function decodeBase64Content(value: string) {
