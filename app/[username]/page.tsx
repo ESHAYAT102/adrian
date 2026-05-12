@@ -114,7 +114,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
     <BrowserContextMenu triggerClassName="block min-h-screen w-full">
       <div className="min-h-screen bg-background text-foreground">
         <Navbar initialUnreadNotifications={unreadNotifications} />
-        <main className="mx-auto w-full max-w-[1920px] px-3 pt-24 pb-3 md:px-4 md:pb-4">
+        <main className="mx-auto w-full max-w-480 px-3 pt-24 pb-3 md:px-4 md:pb-4">
           <Suspense fallback={<ProfileShowcaseFallback />}>
             <ProfileShowcase
               contributions={contributions}

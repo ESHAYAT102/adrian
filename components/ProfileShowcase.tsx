@@ -224,7 +224,7 @@ export default function ProfileShowcase({
             onClick={() => setIsAvatarOpen(true)}
             aria-label={`View ${profile.login}'s profile picture`}
           >
-            <Avatar className="size-28 ring-8 ring-background md:size-32">
+            <Avatar className="size-28 md:size-32">
               <AvatarImage
                 src={profile.avatar_url ?? undefined}
                 alt={profile.login}

@@ -2,17 +2,16 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import {
   ChevronRight,
-  CheckCircle2,
   CircleDot,
   Eye,
   EyeOff,
   GitCommitHorizontal,
   GitFork,
   GitPullRequest,
+  Globe,
   MessageSquare,
   SquareArrowOutUpRight,
   Tag,
-  XCircle,
 } from "lucide-react"
 
 import A from "@/components/A"
@@ -51,7 +50,6 @@ import {
   getGitHubRepositoryIssues,
   getGitHubRepositoryLanguages,
   getGitHubRepositoryPageData,
-  getGitHubRepositoryPagesStatus,
   getGitHubRepositoryPullRequests,
   getGitHubRepositoryPullRequestCount,
   getGitHubRepositoryReleases,
@@ -59,7 +57,6 @@ import {
   type GitHubRepositoryCommit,
   type GitHubRepositoryDiscussion,
   type GitHubRepositoryIssue,
-  type GitHubRepositoryPagesStatus,
   type GitHubRepositoryPullRequest,
   type GitHubRepositoryRelease,
 } from "@/lib/github"
@@ -232,41 +229,6 @@ function RepositoryLanguageCard({
         </div>
       </CardContent>
     </Card>
-  )
-}
-
-function RepositoryWebsiteStatusIcon({
-  status,
-}: {
-  status: GitHubRepositoryPagesStatus
-}) {
-  if (status === "built") {
-    return (
-      <CheckCircle2
-        aria-label="Website is published"
-        className="size-3.5 text-[color-mix(in_oklch,var(--foreground)_18%,oklch(0.62_0.19_145))] dark:text-[color-mix(in_oklch,var(--foreground)_18%,oklch(0.79_0.15_145))]"
-      />
-    )
-  }
-
-  if (status === "errored") {
-    return (
-      <XCircle
-        aria-label="Website build failed"
-        className="size-3.5 text-destructive"
-      />
-    )
-  }
-
-  return (
-    <CircleDot
-      aria-label={
-        status === "building"
-          ? "Website is building"
-          : "Website status unavailable"
-      }
-      className="size-3.5 text-[color-mix(in_oklch,var(--foreground)_18%,oklch(0.78_0.16_83))] dark:text-[color-mix(in_oklch,var(--foreground)_18%,oklch(0.86_0.13_83))]"
-    />
   )
 }
 
@@ -456,9 +418,6 @@ export default async function RepositoryPage({
       sessionUser
     )
   }
-  const repositoryPagesStatus = repository.homepage
-    ? await getGitHubRepositoryPagesStatus(username, repo, sessionUser)
-    : null
   const latestRelease = releases[0] ?? null
   const canEditRepository = canManageRepository && !isCommitRef
   const isOwnedEmptyRepository = canManageRepository && contents.length === 0
@@ -564,11 +523,7 @@ export default async function RepositoryPage({
                       rel="noreferrer"
                       className="inline-flex items-center gap-1.5 hover:text-foreground"
                     >
-                      {repositoryPagesStatus ? (
-                        <RepositoryWebsiteStatusIcon
-                          status={repositoryPagesStatus}
-                        />
-                      ) : null}
+                      <Globe className="size-3.5" />
                       {repository.homepage.replace(/^https?:\/\//, "")}
                     </A>
                   ) : null}
