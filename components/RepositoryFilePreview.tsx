@@ -743,7 +743,7 @@ function RepositoryFilePreviewContent({
             }}
           />
         ) : isEditing ? (
-          <div className="h-[52vh] overflow-hidden rounded-xl border border-border bg-[#151515] sm:h-[60vh]">
+          <div className="h-[64vh] overflow-hidden rounded-xl border border-border bg-[#151515] sm:h-[70vh]">
             <div className="flex h-full">
               <div
                 aria-hidden="true"
@@ -770,7 +770,7 @@ function RepositoryFilePreviewContent({
             </div>
           </div>
         ) : (
-          <div className="relative min-h-[52vh] w-full max-w-[min(90vw,100%)] overflow-hidden rounded-xl border border-border bg-[#151515] sm:min-h-[60vh]">
+          <div className="relative min-h-[64vh] w-full max-w-[min(90vw,100%)] overflow-hidden rounded-xl border border-border bg-[#151515] sm:min-h-[70vh]">
             <div
               aria-hidden="true"
               className="absolute inset-0 overflow-auto select-text"
