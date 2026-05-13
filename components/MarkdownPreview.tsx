@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Check, Copy } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
@@ -85,6 +86,113 @@ function resolveMarkdownUrl(
   const normalizedPath = normalizePath(relativePath)
 
   return `https://raw.githubusercontent.com/${repositoryContext.owner}/${repositoryContext.repo}/${repositoryContext.branch}/${normalizedPath}`
+}
+
+function splitHash(value: string) {
+  const hashIndex = value.indexOf("#")
+  if (hashIndex === -1) {
+    return { base: value, hash: "" }
+  }
+
+  return {
+    base: value.slice(0, hashIndex),
+    hash: value.slice(hashIndex),
+  }
+}
+
+function buildRepositoryFileHref({
+  branch,
+  hash,
+  owner,
+  path,
+  repo,
+}: {
+  branch?: string
+  hash?: string
+  owner: string
+  path?: string
+  repo: string
+}) {
+  const query = new URLSearchParams()
+  if (branch) query.set("branch", branch)
+  if (path) query.set("path", path)
+
+  const queryString = query.toString()
+  return `/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}${
+    queryString ? `?${queryString}` : ""
+  }${hash ?? ""}`
+}
+
+function resolveGitHubRepositoryLink(value: string) {
+  try {
+    const url = new URL(value)
+    const segments = url.pathname.split("/").filter(Boolean)
+
+    if (
+      url.hostname === "github.com" &&
+      segments.length >= 2 &&
+      (segments[2] === "blob" ||
+        segments[2] === "tree" ||
+        segments[2] === "raw")
+    ) {
+      const pathSegments = segments.slice(4)
+      return buildRepositoryFileHref({
+        branch: segments[3] ? decodeURIComponent(segments[3]) : undefined,
+        hash: url.hash,
+        owner: decodeURIComponent(segments[0]),
+        path:
+          pathSegments.length > 0
+            ? pathSegments.map(decodeURIComponent).join("/")
+            : undefined,
+        repo: decodeURIComponent(segments[1]),
+      })
+    }
+
+    if (url.hostname === "raw.githubusercontent.com" && segments.length >= 4) {
+      return buildRepositoryFileHref({
+        branch: decodeURIComponent(segments[2]),
+        hash: url.hash,
+        owner: decodeURIComponent(segments[0]),
+        path: segments.slice(3).map(decodeURIComponent).join("/"),
+        repo: decodeURIComponent(segments[1]),
+      })
+    }
+  } catch {
+    return null
+  }
+
+  return null
+}
+
+function resolveMarkdownLinkUrl(
+  value: string,
+  repositoryContext?: MarkdownPreviewProps["repositoryContext"]
+) {
+  if (!value || !repositoryContext) return value
+  if (value.startsWith("#") || value.startsWith("mailto:")) return value
+
+  if (isAbsoluteUrl(value)) {
+    return resolveGitHubRepositoryLink(value) ?? value
+  }
+
+  const { base, hash } = splitHash(value)
+  if (!base) return hash
+
+  const baseDirectory = repositoryContext.filePath.includes("/")
+    ? repositoryContext.filePath.split("/").slice(0, -1).join("/")
+    : ""
+  const relativePath = base.startsWith("/")
+    ? base.slice(1)
+    : [baseDirectory, base].filter(Boolean).join("/")
+  const normalizedPath = normalizePath(relativePath)
+
+  return buildRepositoryFileHref({
+    branch: repositoryContext.branch,
+    hash,
+    owner: repositoryContext.owner,
+    path: normalizedPath,
+    repo: repositoryContext.repo,
+  })
 }
 
 function toNumber(value?: string | number) {
@@ -271,6 +379,37 @@ export default function MarkdownPreview({
   markdown,
   repositoryContext,
 }: MarkdownPreviewProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || !repositoryContext) return
+
+    const hrefs = Array.from(
+      container.querySelectorAll<HTMLAnchorElement>('a[href^="/"]')
+    )
+      .map((link) => link.getAttribute("href"))
+      .filter((href): href is string => Boolean(href))
+
+    const uniqueHrefs = Array.from(new Set(hrefs)).slice(0, 50)
+    if (uniqueHrefs.length === 0) return
+
+    const prefetch = () => {
+      for (const href of uniqueHrefs) {
+        router.prefetch(href)
+      }
+    }
+
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(prefetch, { timeout: 1500 })
+      return () => window.cancelIdleCallback(id)
+    }
+
+    const id = setTimeout(prefetch, 0)
+    return () => clearTimeout(id)
+  }, [markdown, repositoryContext, router])
+
   const renderImageRow = (node: React.ReactNode) => {
     if (!node) return false
     const images: Array<{
@@ -370,21 +509,27 @@ export default function MarkdownPreview({
   }
 
   return (
-    <div className="max-w-[90vw] min-w-0 space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground **:max-w-[min(85vw,100%)]!">
+    <div
+      ref={containerRef}
+      className="max-w-[90vw] min-w-0 space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground **:max-w-[min(85vw,100%)]!"
+    >
       <ReactMarkdown
         rehypePlugins={[rehypeRaw]}
         remarkPlugins={[remarkGfm]}
         components={{
           a: ({ href, children, ...props }) => {
-            const resolvedHref = href
+            const resolvedMediaHref = href
               ? resolveMarkdownUrl(href, repositoryContext)
+              : href
+            const resolvedHref = href
+              ? resolveMarkdownLinkUrl(href, repositoryContext)
               : href
 
             if (
-              resolvedHref &&
-              (isVideoUrl(resolvedHref) ||
-                isImageUrl(resolvedHref) ||
-                isGitHubAttachmentUrl(resolvedHref))
+              resolvedMediaHref &&
+              (isVideoUrl(resolvedMediaHref) ||
+                isImageUrl(resolvedMediaHref) ||
+                isGitHubAttachmentUrl(resolvedMediaHref))
             ) {
               return (
                 <span className="block">
@@ -392,7 +537,7 @@ export default function MarkdownPreview({
                     alt={
                       typeof children === "string" ? children : "Markdown media"
                     }
-                    src={resolvedHref}
+                    src={resolvedMediaHref}
                     variant="block"
                   />
                 </span>
@@ -514,12 +659,25 @@ export default function MarkdownPreview({
                             child.props?.children?.type === "img"
                           ) {
                             const imageNode = child.props.children
+                            const href =
+                              typeof child.props?.href === "string"
+                                ? resolveMarkdownLinkUrl(
+                                    child.props.href,
+                                    repositoryContext
+                                  )
+                                : child.props?.href
                             return (
                               <a
                                 key={`img-${index}`}
-                                href={child.props?.href}
-                                target="_blank"
-                                rel="noreferrer"
+                                href={href}
+                                target={
+                                  href?.startsWith("/") ? undefined : "_blank"
+                                }
+                                rel={
+                                  href?.startsWith("/")
+                                    ? undefined
+                                    : "noreferrer"
+                                }
                                 className="inline-flex max-w-full min-w-0"
                               >
                                 <SmartMedia
