@@ -52,9 +52,6 @@ export default async function SettingsPage() {
         <main className="mx-auto max-w-6xl px-5 pt-24 pb-10">
           <div className="mb-8 flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              <p className="text-xs tracking-[0.24em] text-muted-foreground uppercase">
-                Preferences
-              </p>
               <h1 className="text-4xl font-semibold tracking-tight">
                 Settings
               </h1>

@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import type { Metadata } from "next"
 import Script from "next/script"
 
+import AppKeyboardShortcuts from "@/components/AppKeyboardShortcuts"
 import AuthProvider from "@/components/AuthProvider"
 import "./globals.css"
 import { getSessionUser } from "@/lib/session"
@@ -73,6 +74,7 @@ export default async function RootLayout({
         />
         <AuthProvider user={user}>
           <ThemeProvider>
+            <AppKeyboardShortcuts />
             <UiSoundEffects />
             {children}
             <Toaster richColors position="bottom-right" />

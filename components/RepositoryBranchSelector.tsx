@@ -59,7 +59,7 @@ export default function RepositoryBranchSelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        className="w-[min(92vw,24rem)] rounded-2xl border border-border/70 bg-transparent p-3 shadow-2xl"
+        className="w-[min(92vw,24rem)] rounded-2xl border border-border/70 bg-card p-3 shadow-2xl"
       >
         <div className="space-y-3">
           <div className="space-y-1">

@@ -7,7 +7,6 @@ import A from "@/components/A"
 import { useAuth } from "@/components/AuthProvider"
 import BrowserContextMenu from "@/components/BrowserContextMenu"
 import CommandPalette from "@/components/CommandPalette"
-import LiquidGlassLayer from "@/components/LiquidGlassLayer"
 import NotificationsDrawer from "@/components/NotificationsDrawer"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,9 +41,6 @@ import Image from "./Image"
 type NavbarProps = {
   initialUnreadNotifications?: GitHubNotification[]
 }
-
-const navbarButtonClass =
-  "focus-visible:border-transparent focus-visible:ring-0"
 
 export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
   const { user } = useAuth()
@@ -103,15 +99,14 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
   const authUrl = "/api/auth/github/login?callbackUrl=/"
 
   return (
-    <nav className="fixed z-50 flex w-full items-center justify-between overflow-hidden border-b border-foreground/10 px-4 py-4 md:px-8">
-      <LiquidGlassLayer />
+    <nav className="fixed z-50 flex w-full items-center justify-between border-b border-foreground/10 bg-background px-4 py-4 md:px-8">
       <CommandPalette
         open={isCommandOpen}
         onOpenChange={handleCommandOpenChange}
         onOpenNotificationsChange={setIsNotificationsOpen}
         initialValue={commandInitialValue}
       />
-      <div className="relative z-10 flex items-center">
+      <div className="flex items-center">
         <BrowserContextMenu
           triggerClassName="flex items-center justify-center"
           menuChildren={
@@ -141,10 +136,10 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           </Link>
         </BrowserContextMenu>
       </div>
-      <div className="relative z-10 flex items-center gap-2">
+      <div className="flex items-center gap-2">
         <BrowserContextMenu triggerClassName="inline-flex">
           <Button
-            className={`mr-2 rounded-full ${navbarButtonClass}`}
+            className="rounded-full mr-2"
             variant="ghost"
             title="Open command palette"
             onClick={() => {
@@ -157,7 +152,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           {user ? (
             <Button
               asChild
-              className={`hidden cursor-default rounded-full sm:inline-flex ${navbarButtonClass}`}
+              className="hidden cursor-default rounded-full sm:inline-flex"
               variant="ghost"
               title="Create new repository"
             >
@@ -179,7 +174,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           )}
         </div>
         <Button
-          className={`hidden rounded-full md:flex ${navbarButtonClass}`}
+          className="hidden rounded-full md:flex"
           variant="ghost"
           title={`Theme: ${getThemeLabel(currentTheme)}`}
           onClick={() => {
@@ -193,7 +188,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                className={`rounded-full ${navbarButtonClass}`}
+                className="rounded-full"
                 variant="ghost"
                 size="icon"
               >
@@ -246,7 +241,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           <Button
             asChild
             variant="outline"
-            className={`hidden rounded-full px-4 md:inline-flex ${navbarButtonClass}`}
+            className="hidden rounded-full px-4 md:inline-flex"
           >
             <A href={authUrl}>Sign in</A>
           </Button>
