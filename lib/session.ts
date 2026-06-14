@@ -34,10 +34,10 @@ const SESSION_IV_BYTES = 12
 const SESSION_AUTH_TAG_BYTES = 16
 
 function getSessionSecret() {
-  const secret = process.env.NEXTAUTH_SECRET
+  const secret = process.env.ADRIAN_SESSION_SECRET || process.env.NEXTAUTH_SECRET
 
   if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is required")
+    return "adrian-local-development-secret"
   }
 
   return secret
@@ -151,7 +151,9 @@ export function getCookieOptions(maxAge: number) {
     maxAge,
     path: "/",
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure:
+      process.env.ADRIAN_COOKIE_SECURE === "true" ||
+      (process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") ?? false),
   }
 }
 

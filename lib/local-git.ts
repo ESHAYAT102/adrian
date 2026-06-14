@@ -4,22 +4,40 @@ import {
   mkdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs"
-import { join } from "node:path"
+import { basename, dirname, extname, join, normalize } from "node:path"
 
 export type LocalRepositoryMetadata = {
+  archived?: boolean
   createdAt: string
   defaultBranch: string
   description: string | null
+  homepage?: string | null
   name: string
+  owner: string
+  private?: boolean
+  size?: number
+  topics?: string[]
   updatedAt: string
 }
 
 export type LocalRepositoryHandle = LocalRepositoryMetadata & {
   barePath: string
+  clonePath: string
   commitAll: (message: string) => void
   workTreePath: string
+}
+
+export type LocalRepositoryContent = {
+  content?: string
+  encoding?: "base64" | "utf-8"
+  name: string
+  path: string
+  sha: string
+  size: number
+  type: "dir" | "file"
 }
 
 const DEFAULT_BRANCH = "main"
@@ -64,12 +82,40 @@ export function ensureLocalGitStorage() {
 
 function readMetadata(): LocalRepositoryMetadata[] {
   ensureLocalGitStorage()
-  return JSON.parse(readFileSync(getDbPath(), "utf8")) as LocalRepositoryMetadata[]
+  const raw = JSON.parse(readFileSync(getDbPath(), "utf8")) as Array<Partial<LocalRepositoryMetadata>>
+  return raw.map((repo) => ({
+    archived: repo.archived ?? false,
+    createdAt: repo.createdAt ?? new Date(0).toISOString(),
+    defaultBranch: repo.defaultBranch ?? DEFAULT_BRANCH,
+    description: repo.description ?? null,
+    homepage: repo.homepage ?? null,
+    name: repo.name ?? "repo",
+    owner: repo.owner ?? "eshayat",
+    private: repo.private ?? false,
+    size: repo.size ?? 0,
+    topics: repo.topics ?? [],
+    updatedAt: repo.updatedAt ?? repo.createdAt ?? new Date(0).toISOString(),
+  }))
 }
 
 function writeMetadata(repositories: LocalRepositoryMetadata[]) {
   ensureLocalGitStorage()
   writeFileSync(getDbPath(), `${JSON.stringify(repositories, null, 2)}\n`)
+}
+
+export function validateUsername(username: string) {
+  const normalized = username.trim()
+  if (!normalized) return { ok: false, error: "Username is required" }
+  if (normalized === ".git" || normalized.endsWith(".git")) {
+    return { ok: false, error: "Usernames should omit the .git suffix" }
+  }
+  if (normalized.startsWith(".") || normalized.includes("..")) {
+    return { ok: false, error: "Usernames cannot be hidden or contain .." }
+  }
+  if (!/^[A-Za-z0-9][A-Za-z0-9-]{0,38}$/.test(normalized)) {
+    return { ok: false, error: "Use 1-39 letters, numbers, or dashes" }
+  }
+  return { ok: true as const }
 }
 
 export function validateRepositoryName(name: string) {
@@ -82,30 +128,40 @@ export function validateRepositoryName(name: string) {
     return { ok: false, error: "Repository names cannot be hidden or contain .." }
   }
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(normalized)) {
-    return {
-      ok: false,
-      error: "Use 1-100 letters, numbers, dots, underscores, or dashes",
-    }
+    return { ok: false, error: "Use 1-100 letters, numbers, dots, underscores, or dashes" }
   }
-
   return { ok: true as const }
 }
 
-export function getRepositoryPaths(name: string) {
-  const normalized = name.replace(/\.git$/, "")
+export function normalizeOwner(owner: string) {
+  return owner.trim().toLowerCase()
+}
+
+export function normalizeRepositoryName(name: string) {
+  return name.trim().replace(/\.git$/, "")
+}
+
+export function getRepositoryClonePath(owner: string, name: string) {
+  return `/${normalizeOwner(owner)}/${normalizeRepositoryName(name)}.git`
+}
+
+export function getRepositoryPaths(owner: string, name: string) {
+  const normalizedOwner = normalizeOwner(owner)
+  const normalized = normalizeRepositoryName(name)
   return {
-    barePath: join(getReposDir(), `${normalized}.git`),
-    workTreePath: join(getWorktreesDir(), normalized),
+    barePath: join(getReposDir(), normalizedOwner, `${normalized}.git`),
+    clonePath: getRepositoryClonePath(normalizedOwner, normalized),
+    workTreePath: join(getWorktreesDir(), normalizedOwner, normalized),
   }
 }
 
 function toHandle(metadata: LocalRepositoryMetadata): LocalRepositoryHandle {
-  const paths = getRepositoryPaths(metadata.name)
+  const paths = getRepositoryPaths(metadata.owner, metadata.name)
   return {
     ...metadata,
     ...paths,
     commitAll(message: string) {
-      commitRepositoryChanges(metadata.name, message)
+      commitRepositoryChanges(metadata.owner, metadata.name, message)
     },
   }
 }
@@ -114,37 +170,62 @@ export function listLocalRepositories() {
   return readMetadata().sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 }
 
-export function getLocalRepository(name: string) {
-  const normalized = name.replace(/\.git$/, "")
-  const metadata = readMetadata().find((repo) => repo.name === normalized)
+export function listRepositoriesForOwner(owner: string) {
+  const normalizedOwner = normalizeOwner(owner)
+  return listLocalRepositories().filter((repo) => repo.owner === normalizedOwner)
+}
+
+export function getLocalRepository(owner: string, name: string) {
+  const normalizedOwner = normalizeOwner(owner)
+  const normalized = normalizeRepositoryName(name)
+  const metadata = readMetadata().find((repo) => repo.owner === normalizedOwner && repo.name === normalized)
   return metadata ? toHandle(metadata) : null
+}
+
+function updateRepoMetadata(owner: string, name: string, updater: (repo: LocalRepositoryMetadata) => LocalRepositoryMetadata) {
+  const normalizedOwner = normalizeOwner(owner)
+  const normalized = normalizeRepositoryName(name)
+  let updated: LocalRepositoryMetadata | null = null
+  writeMetadata(readMetadata().map((repo) => {
+    if (repo.owner !== normalizedOwner || repo.name !== normalized) return repo
+    updated = updater(repo)
+    return updated
+  }))
+  if (!updated) throw new Error("Repository not found")
+  return toHandle(updated)
 }
 
 export function createLocalRepository({
   description = null,
+  homepage = null,
   name,
+  owner,
+  private: isPrivate = false,
 }: {
   description?: string | null
+  homepage?: string | null
   name: string
+  owner: string
+  private?: boolean
 }) {
-  const normalized = name.trim().replace(/\.git$/, "")
+  const normalizedOwner = normalizeOwner(owner)
+  const normalized = normalizeRepositoryName(name)
+  const ownerValidation = validateUsername(normalizedOwner)
+  if (!ownerValidation.ok) throw new Error(ownerValidation.error)
   const validation = validateRepositoryName(normalized)
   if (!validation.ok) throw new Error(validation.error)
-  if (getLocalRepository(normalized)) throw new Error("Repository already exists")
+  if (getLocalRepository(normalizedOwner, normalized)) throw new Error("Repository already exists")
 
   ensureLocalGitStorage()
   const now = new Date().toISOString()
-  const paths = getRepositoryPaths(normalized)
+  const paths = getRepositoryPaths(normalizedOwner, normalized)
   mkdirSync(paths.workTreePath, { recursive: true })
   mkdirSync(paths.barePath, { recursive: true })
 
   runGit(["init", "-b", DEFAULT_BRANCH], paths.workTreePath)
   runGit(["config", "user.name", GIT_AUTHOR], paths.workTreePath)
   runGit(["config", "user.email", GIT_EMAIL], paths.workTreePath)
-  writeFileSync(
-    join(paths.workTreePath, "README.md"),
-    `# ${normalized}\n\n${description || "An Adrian repository."}\n`
-  )
+  writeFileSync(join(paths.workTreePath, "README.md"), `# ${normalized}\n\n${description || "An Adrian repository."}\n`)
   runGit(["add", "README.md"], paths.workTreePath)
   runGit(["commit", "-m", "Initial commit"], paths.workTreePath)
   runGit(["init", "--bare", "-b", DEFAULT_BRANCH], paths.barePath)
@@ -153,10 +234,16 @@ export function createLocalRepository({
   runGit(["update-server-info"], paths.barePath)
 
   const metadata: LocalRepositoryMetadata = {
+    archived: false,
     createdAt: now,
     defaultBranch: DEFAULT_BRANCH,
     description,
+    homepage,
     name: normalized,
+    owner: normalizedOwner,
+    private: isPrivate,
+    size: 0,
+    topics: [],
     updatedAt: now,
   }
   writeMetadata([...readMetadata(), metadata])
@@ -164,8 +251,29 @@ export function createLocalRepository({
   return toHandle(metadata)
 }
 
-export function commitRepositoryChanges(name: string, message: string) {
-  const repo = getLocalRepository(name)
+export function updateLocalRepositoryMetadata(owner: string, name: string, input: Partial<LocalRepositoryMetadata> & { default_branch?: string | null }) {
+  return updateRepoMetadata(owner, name, (repo) => ({
+    ...repo,
+    archived: input.archived ?? repo.archived,
+    defaultBranch: input.default_branch ?? input.defaultBranch ?? repo.defaultBranch,
+    description: input.description ?? repo.description,
+    homepage: input.homepage ?? repo.homepage ?? null,
+    name: input.name ? normalizeRepositoryName(input.name) : repo.name,
+    private: input.private ?? repo.private,
+    updatedAt: new Date().toISOString(),
+  }))
+}
+
+export function deleteLocalRepository(owner: string, name: string) {
+  const repo = getLocalRepository(owner, name)
+  if (!repo) throw new Error("Repository not found")
+  rmSync(repo.workTreePath, { force: true, recursive: true })
+  rmSync(repo.barePath, { force: true, recursive: true })
+  writeMetadata(readMetadata().filter((item) => !(item.owner === repo.owner && item.name === repo.name)))
+}
+
+export function commitRepositoryChanges(owner: string, name: string, message: string) {
+  const repo = getLocalRepository(owner, name)
   if (!repo) throw new Error("Repository not found")
 
   runGit(["add", "-A"], repo.workTreePath)
@@ -176,77 +284,81 @@ export function commitRepositoryChanges(name: string, message: string) {
     runGit(["update-server-info"], repo.barePath)
   }
 
-  const now = new Date().toISOString()
-  writeMetadata(
-    readMetadata().map((item) =>
-      item.name === repo.name ? { ...item, updatedAt: now } : item
-    )
-  )
+  updateRepoMetadata(owner, name, (item) => ({ ...item, updatedAt: new Date().toISOString() }))
 }
 
-export function writeRepositoryFile({
-  content,
-  message,
-  name,
-  path,
-}: {
-  content: string
-  message?: string
-  name: string
-  path: string
-}) {
-  const repo = getLocalRepository(name)
+export function writeRepositoryFile({ content, message, name, owner, path }: { content: string; message?: string; name: string; owner: string; path: string }) {
+  const repo = getLocalRepository(owner, name)
   if (!repo) throw new Error("Repository not found")
   const safePath = path.split("/").filter(Boolean)
-  if (safePath.length === 0 || safePath.some((part) => part === "..")) {
-    throw new Error("Invalid file path")
-  }
+  if (safePath.length === 0 || safePath.some((part) => part === "..")) throw new Error("Invalid file path")
   const absolutePath = join(repo.workTreePath, ...safePath)
-  mkdirSync(join(absolutePath, ".."), { recursive: true })
+  mkdirSync(dirname(absolutePath), { recursive: true })
   writeFileSync(absolutePath, content)
-  commitRepositoryChanges(repo.name, message || `Update ${safePath.join("/")}`)
+  commitRepositoryChanges(owner, name, message || `Update ${safePath.join("/")}`)
 }
 
-export function getRepositoryFiles(name: string) {
-  const repo = getLocalRepository(name)
+function getTreeEntries(owner: string, name: string, path = "", branch?: string) {
+  const repo = getLocalRepository(owner, name)
   if (!repo) return []
+  const ref = branch || repo.defaultBranch
+  const treeish = path ? `${ref}:${path}` : ref
   try {
-    return runGit(["ls-tree", "-r", "--name-only", repo.defaultBranch], repo.workTreePath)
+    return runGit(["ls-tree", treeish], repo.workTreePath)
       .split("\n")
       .filter(Boolean)
+      .map((line) => {
+        const [meta, fileName] = line.split("\t")
+        const [mode, type, sha] = meta.split(" ")
+        const fullPath = path ? `${path}/${fileName}` : fileName
+        const size = type === "blob" ? Number(runGit(["cat-file", "-s", sha], repo.workTreePath)) : 0
+        return { mode, name: fileName, path: fullPath, sha, size, type: type === "tree" ? "dir" as const : "file" as const }
+      })
   } catch {
     return []
   }
 }
 
-export function getRepositoryReadme(name: string) {
-  const repo = getLocalRepository(name)
+export function getRepositoryContents(owner: string, name: string, path = "", branch?: string): LocalRepositoryContent[] {
+  return getTreeEntries(owner, name, path, branch)
+}
+
+export function getRepositoryFiles(owner: string, name: string, branch?: string) {
+  const repo = getLocalRepository(owner, name)
+  if (!repo) return []
+  try {
+    return runGit(["ls-tree", "-r", "--name-only", branch || repo.defaultBranch], repo.workTreePath).split("\n").filter(Boolean)
+  } catch {
+    return []
+  }
+}
+
+export function getRepositoryFileText(owner: string, name: string, path: string, branch?: string) {
+  const repo = getLocalRepository(owner, name)
   if (!repo) return null
+  const normalized = normalize(path)
+  if (normalized.startsWith("..")) return null
+  try {
+    const sha = runGit(["rev-parse", `${branch || repo.defaultBranch}:${normalized}`], repo.workTreePath)
+    return { content: runGit(["show", `${branch || repo.defaultBranch}:${normalized}`], repo.workTreePath), name: basename(normalized), path: normalized, sha }
+  } catch {
+    return null
+  }
+}
+
+export function getRepositoryReadme(owner: string, name: string, branch?: string) {
   for (const path of ["README.md", "readme.md", "README"]) {
-    try {
-      return {
-        content: runGit(["show", `${repo.defaultBranch}:${path}`], repo.workTreePath),
-        path,
-      }
-    } catch {}
+    const file = getRepositoryFileText(owner, name, path, branch)
+    if (file) return file
   }
   return null
 }
 
-export function getRepositoryCommits(name: string, limit = 20) {
-  const repo = getLocalRepository(name)
+export function getRepositoryCommits(owner: string, name: string, limit = 20, branch?: string) {
+  const repo = getLocalRepository(owner, name)
   if (!repo) return []
   try {
-    return runGit(
-      [
-        "log",
-        `-${limit}`,
-        "--date=iso-strict",
-        "--format=%H%x1f%an%x1f%ad%x1f%s",
-        repo.defaultBranch,
-      ],
-      repo.workTreePath
-    )
+    return runGit(["log", `-${limit}`, "--date=iso-strict", "--format=%H%x1f%an%x1f%ad%x1f%s", branch || repo.defaultBranch], repo.workTreePath)
       .split("\n")
       .filter(Boolean)
       .map((line) => {
@@ -256,6 +368,34 @@ export function getRepositoryCommits(name: string, limit = 20) {
   } catch {
     return []
   }
+}
+
+const LANGUAGE_BY_EXT: Record<string, string> = {
+  ".css": "CSS",
+  ".go": "Go",
+  ".html": "HTML",
+  ".js": "JavaScript",
+  ".jsx": "JavaScript",
+  ".json": "JSON",
+  ".md": "Markdown",
+  ".py": "Python",
+  ".rs": "Rust",
+  ".ts": "TypeScript",
+  ".tsx": "TypeScript",
+}
+
+export function getRepositoryLanguages(owner: string, name: string) {
+  const repo = getLocalRepository(owner, name)
+  if (!repo) return {}
+  const languages: Record<string, number> = {}
+  for (const file of getRepositoryFiles(owner, name)) {
+    const language = LANGUAGE_BY_EXT[extname(file).toLowerCase()]
+    if (!language) continue
+    const absolutePath = join(repo.workTreePath, file)
+    const size = existsSync(absolutePath) && statSync(absolutePath).isFile() ? statSync(absolutePath).size : 0
+    languages[language] = (languages[language] ?? 0) + size
+  }
+  return languages
 }
 
 export function removeAllLocalRepositoriesForTests() {

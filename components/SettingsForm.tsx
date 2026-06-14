@@ -88,9 +88,9 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     if (!response.ok) {
       setError(
         data.error === "forbidden"
-          ? "Your current GitHub token cannot edit profile settings yet. Sign out and reconnect to grant the user scope."
+          ? "Your current Adrian session cannot edit profile settings yet."
           : data.error === "validation_failed"
-            ? "GitHub rejected one of the values. Check the fields and try again."
+            ? "Adrian rejected one of the values. Check the fields and try again."
             : "Saving failed. Please try again."
       )
       return
@@ -108,7 +108,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
       })
     }
 
-    setNotice("Settings saved to GitHub.")
+    setNotice("Settings saved to Adrian.")
   }
 
   return (
@@ -117,7 +117,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         <CardHeader>
           <CardTitle>OAuth Access</CardTitle>
           <CardDescription>
-            This is what your current GitHub OAuth token can access right now.
+            This is what your local Adrian account can access right now.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -150,13 +150,12 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
           </div>
           {!settings.canEditProfile ? (
             <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Editing GitHub profile settings needs the `user` OAuth scope.
-              Reconnect your GitHub account once to upgrade the token.
+              Editing profile settings requires a local Adrian account.
               <div className="mt-3">
                 <Button asChild variant="outline" className="rounded-xl">
-                  <A href="/api/auth/github/login?callbackUrl=/settings">
+                  <A href="/settings">
                     <RefreshCw />
-                    Reconnect GitHub
+                    Login to Adrian
                   </A>
                 </Button>
               </div>
@@ -169,7 +168,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>
           <CardDescription>
-            These fields sync directly with your GitHub profile.
+            These fields sync with your Adrian profile.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -272,7 +271,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
                   value={settings.email ?? "No public email available"}
                 />
                 <FieldDescription>
-                  GitHub email address editing is not managed from this app.
+                  Email editing is not managed from this screen yet.
                 </FieldDescription>
               </FieldContent>
             </Field>

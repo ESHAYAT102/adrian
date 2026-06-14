@@ -83,7 +83,7 @@ export default function RepositoryEngagementActions({
 
     if (response.ok) {
       setForkCount((current) => current + 1)
-      toast.success("Fork started on GitHub")
+      toast.success("Fork action queued in Adrian")
     } else {
       toast.error("Could not fork repository")
     }

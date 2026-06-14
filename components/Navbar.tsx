@@ -96,7 +96,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
   const currentTheme = ((theme === "system" ? resolvedTheme : theme) ??
     "light") as ThemeId
   const isDarkTheme = getThemeMode(currentTheme) === "dark"
-  const authUrl = "/api/auth/github/login?callbackUrl=/"
+  const authUrl = "/"
 
   return (
     <nav className="fixed z-50 flex w-full items-center justify-between border-b border-foreground/10 bg-background px-4 py-4 md:px-8">

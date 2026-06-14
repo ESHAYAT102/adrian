@@ -75,7 +75,7 @@ export default function RepositoryAboutEditor({
     if (!response.ok) {
       const message =
         data.error === "forbidden"
-          ? "You do not have permission to edit this repository from the current GitHub session."
+          ? "You do not have permission to edit this repository from the current Adrian session."
           : data.error === "validation_failed"
             ? "GitHub rejected one of the values. Check the description or homepage and try again."
             : "Saving failed. Please try again."
@@ -129,7 +129,7 @@ export default function RepositoryAboutEditor({
         ) : (
           <p className="text-xs text-muted-foreground">
             Repository details can only be edited from repos you own with the
-            current GitHub session.
+            current Adrian session.
           </p>
         )}
 

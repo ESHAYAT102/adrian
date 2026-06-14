@@ -246,7 +246,7 @@ export default function ProfileShowcase({
                   target="_blank"
                   rel="noreferrer"
                   className="rounded-md text-muted-foreground transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                  aria-label={`Open ${profile.login} on GitHub`}
+                  aria-label={`Open ${profile.login} in Adrian`}
                 >
                   <SquareArrowOutUpRight className="size-5" />
                 </A>

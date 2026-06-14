@@ -82,9 +82,9 @@ export default function NewRepositoryForm({
     if (!response.ok || !data.repository) {
       const message =
         data.error === "forbidden"
-          ? "Your current GitHub token cannot create repositories. Reconnect to refresh the repo scope."
+          ? "Your Adrian account cannot create repositories right now."
           : data.error === "validation_failed"
-            ? "GitHub rejected this repository setup. The name may already be taken in your account, or one of the values is invalid."
+            ? "Adrian rejected this repository setup. The name may already exist in your account, or one of the values is invalid."
             : "Repository creation failed. Please try again."
       setError(message)
       toast.error(message)
@@ -108,13 +108,12 @@ export default function NewRepositoryForm({
         <CardContent className="space-y-6">
           {!canCreateRepositories ? (
             <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Creating repositories needs the <code>repo</code> OAuth scope.
-              Reconnect your GitHub account once to refresh access.
+              Creating repositories requires a local Adrian account.
               <div className="mt-3">
                 <Button asChild variant="outline" className="rounded-xl">
-                  <A href="/api/auth/github/login?callbackUrl=/new">
+                  <A href="/new">
                     <RefreshCw />
-                    Reconnect GitHub
+                    Login to Adrian
                   </A>
                 </Button>
               </div>

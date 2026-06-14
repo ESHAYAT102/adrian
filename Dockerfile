@@ -17,6 +17,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=8390
 ENV ADRIAN_DATA_DIR=/data
+ENV ADRIAN_SESSION_SECRET=adrian-local-docker-secret-change-me
 RUN apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates \
   && rm -rf /var/lib/apt/lists/* \

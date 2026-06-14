@@ -307,7 +307,7 @@ export default function CommandPalette({
           onSelect: () => {
             markCommandUsed("sign-in")
             onOpenChange(false)
-            window.location.href = "/api/auth/github/login?callbackUrl=/"
+            window.location.href = "/"
           },
           keywords: ["login", "account"],
         }
@@ -408,7 +408,7 @@ export default function CommandPalette({
       },
       {
         id: "open-in-github",
-        label: "Open in GitHub",
+        label: "Open in Adrian",
         icon: (
           <SquareArrowOutUpRight className="size-4 text-muted-foreground" />
         ),
@@ -418,10 +418,10 @@ export default function CommandPalette({
           const segments = path.split("/").filter(Boolean)
           const githubUrl =
             segments.length >= 2
-              ? `https://github.com/${segments[0]}/${segments[1]}`
+              ? `/${segments[0]}/${segments[1]}`
               : segments.length === 1
-                ? `https://github.com/${segments[0]}`
-                : "https://github.com"
+                ? `/${segments[0]}`
+                : ""
           onOpenChange(false)
           window.open(githubUrl, "_blank", "noopener,noreferrer")
         },
@@ -544,7 +544,7 @@ export default function CommandPalette({
       {
         id: "slash-github",
         command: "/github",
-        description: "Open in GitHub",
+        description: "Open in Adrian",
         placeholder: "/github owner/repo",
         onSelect: () => setValue("/github "),
         requiresArgument: false,
@@ -749,20 +749,20 @@ export default function CommandPalette({
       if (user?.login) router.push(`/${user.login}`)
     })
     map.set("sign in", () => {
-      window.location.href = "/api/auth/github/login?callbackUrl=/"
+      window.location.href = "/"
     })
     map.set("signin", () => {
-      window.location.href = "/api/auth/github/login?callbackUrl=/"
+      window.location.href = "/"
     })
     map.set("open in github", () => {
       const path = window.location.pathname
       const segments = path.split("/").filter(Boolean)
       const githubUrl =
         segments.length >= 2
-          ? `https://github.com/${segments[0]}/${segments[1]}`
+          ? `/${segments[0]}/${segments[1]}`
           : segments.length === 1
-            ? `https://github.com/${segments[0]}`
-            : "https://github.com"
+            ? `/${segments[0]}`
+            : ""
       window.open(githubUrl, "_blank", "noopener,noreferrer")
     })
     map.set("theme", () => {
@@ -876,10 +876,10 @@ export default function CommandPalette({
       const segments = target.split("/").filter(Boolean)
       const githubUrl =
         segments.length >= 2
-          ? `https://github.com/${segments[0]}/${segments[1]}`
+          ? `/${segments[0]}/${segments[1]}`
           : segments.length === 1
-            ? `https://github.com/${segments[0]}`
-            : "https://github.com"
+            ? `/${segments[0]}`
+            : ""
       onOpenChange(false)
       window.open(githubUrl, "_blank", "noopener,noreferrer")
       return
@@ -945,7 +945,7 @@ export default function CommandPalette({
 
     if (["signin", "login"].includes(command)) {
       onOpenChange(false)
-      window.location.href = "/api/auth/github/login?callbackUrl=/"
+      window.location.href = "/"
       return
     }
 

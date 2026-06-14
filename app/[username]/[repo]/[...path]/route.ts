@@ -7,9 +7,9 @@ import { getLocalRepository } from "@/lib/local-git"
 export const runtime = "nodejs"
 
 const CONTENT_TYPES: Record<string, string> = {
-  "HEAD": "text/plain; charset=utf-8",
-  "config": "text/plain; charset=utf-8",
-  "description": "text/plain; charset=utf-8",
+  HEAD: "text/plain; charset=utf-8",
+  config: "text/plain; charset=utf-8",
+  description: "text/plain; charset=utf-8",
   "info/refs": "text/plain; charset=utf-8",
 }
 
@@ -22,10 +22,12 @@ function getContentType(path: string) {
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ path: string[]; repo: string }> }
+  { params }: { params: Promise<{ path: string[]; repo: string; username: string }> }
 ) {
-  const { path, repo } = await params
-  const repository = getLocalRepository(repo)
+  const { path, repo, username } = await params
+  if (!repo.endsWith(".git")) return new NextResponse("Not found", { status: 404 })
+
+  const repository = getLocalRepository(username, repo.replace(/\.git$/, ""))
   if (!repository) return new NextResponse("Not found", { status: 404 })
 
   const relativePath = normalize(path.join("/"))

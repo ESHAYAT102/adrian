@@ -102,9 +102,9 @@ export default function RepositorySettingsForm({
     if (!response.ok || !data.repository) {
       toast.error(
         data.error === "forbidden"
-          ? "Your current GitHub session cannot change these repository settings."
+          ? "Your current Adrian session cannot change these repository settings."
           : data.error === "validation_failed"
-            ? "GitHub rejected one of the values. Check the fields and try again."
+            ? "Adrian rejected one of the values. Check the fields and try again."
             : "Could not save repository settings."
       )
       return
@@ -165,7 +165,7 @@ export default function RepositorySettingsForm({
 
           toast.error(
             data.error === "forbidden"
-              ? "GitHub denied repository deletion. Sign out and sign back in to grant delete permissions."
+              ? "Adrian denied repository deletion. Sign out and sign back in as the owner."
               : "Could not delete repository"
           )
           return
@@ -190,7 +190,7 @@ export default function RepositorySettingsForm({
         <CardHeader className="px-5 py-4">
           <CardTitle className="text-base">General</CardTitle>
           <CardDescription>
-            Update the repository details GitHub lets this app manage.
+            Update the repository details Adrian manages.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 px-5 pb-5">
@@ -355,7 +355,7 @@ export default function RepositorySettingsForm({
                   </Button>
                 </div>
                 <FieldDescription>
-                  Archived repositories become read-only on GitHub.
+                  Archived repositories become read-only in Adrian.
                 </FieldDescription>
               </FieldContent>
             </Field>
@@ -423,7 +423,7 @@ export default function RepositorySettingsForm({
             Danger zone
           </CardTitle>
           <CardDescription>
-            These actions are permanent and affect the repository on GitHub.
+            These actions are permanent and affect the repository in Adrian.
           </CardDescription>
         </CardHeader>
         <CardContent className="px-5 pb-5">

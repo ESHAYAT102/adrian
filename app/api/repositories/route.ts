@@ -1,30 +1,39 @@
 import { NextResponse } from "next/server"
 
-import { createLocalRepository } from "@/lib/local-git"
+import { createGitHubRepository } from "@/lib/github"
+import { getSessionUser } from "@/lib/session"
 
 export const runtime = "nodejs"
 
 export async function POST(request: Request) {
-  const contentType = request.headers.get("content-type") || ""
-  const body = contentType.includes("application/json")
-    ? await request.json()
-    : Object.fromEntries((await request.formData()).entries())
+  const sessionUser = await getSessionUser()
 
-  try {
-    const repository = createLocalRepository({
-      description: body.description ? String(body.description) : null,
-      name: String(body.name || ""),
-    })
+  if (!sessionUser) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  }
 
-    if (contentType.includes("application/json")) {
-      return NextResponse.json({ repository }, { status: 201 })
-    }
+  const body = (await request.json()) as {
+    auto_init?: boolean
+    description?: string | null
+    homepage?: string | null
+    name?: string
+    private?: boolean
+  }
 
-    return NextResponse.redirect(new URL(`/${repository.name}`, request.url), 303)
-  } catch (error) {
+  const result = await createGitHubRepository(sessionUser, {
+    auto_init: body.auto_init ?? false,
+    description: body.description ?? null,
+    homepage: body.homepage ?? null,
+    name: body.name?.trim() ?? "",
+    private: body.private ?? false,
+  })
+
+  if (!result.repository) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "request_failed" },
-      { status: 400 }
+      { error: result.error ?? "request_failed" },
+      { status: result.status }
     )
   }
+
+  return NextResponse.json({ repository: result.repository }, { status: 201 })
 }

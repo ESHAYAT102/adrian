@@ -1,31 +1,59 @@
 import { Geist, Geist_Mono } from "next/font/google"
 import type { Metadata } from "next"
+import Script from "next/script"
 
+import AppKeyboardShortcuts from "@/components/AppKeyboardShortcuts"
+import AuthProvider from "@/components/AuthProvider"
 import "./globals.css"
+import { getSessionUser } from "@/lib/session"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
+import { UiSoundEffects } from "@/components/UiSoundEffects"
 
 const geistHeading = Geist({ subsets: ["latin"], variable: "--font-heading" })
-const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
+
+const fontSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+})
+
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:8390"),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ??
+      process.env.NEXTAUTH_URL ??
+      process.env.PORTLESS_URL ??
+      "http://localhost:8390"
+  ),
   title: "Adrian",
   description:
-    "Adrian is a Dockerized, local-first Git workspace with no GitHub dependency.",
+    "Adrian is the Xenon experience rebuilt on its own self-hosted Git server.",
+  alternates: {
+    types: {
+      "text/plain": "/llms.txt",
+      "text/markdown": "/llms-full.txt",
+      "application/vnd.oai.openapi+json": "/openapi.json",
+    },
+  },
   robots: {
-    follow: false,
-    index: false,
+    follow: true,
+    googleBot: {
+      follow: true,
+      index: true,
+    },
+    index: true,
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const user = await getSessionUser()
+
   return (
     <html
       lang="en"
@@ -39,10 +67,19 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>
-          {children}
-          <Toaster richColors position="bottom-right" />
-        </ThemeProvider>
+        <Script
+          defer
+          src="https://cloud.umami.is/script.js"
+          data-website-id="d67f8207-6850-461e-9db7-c1f6d0617387"
+        />
+        <AuthProvider user={user}>
+          <ThemeProvider>
+            <AppKeyboardShortcuts />
+            <UiSoundEffects />
+            {children}
+            <Toaster richColors position="bottom-right" />
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   )

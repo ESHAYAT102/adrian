@@ -410,7 +410,7 @@ function RepositoryFilePreviewContent({
     if (!response.ok) {
       toast.error(
         data.error === "conflict"
-          ? "The file changed on GitHub. Reload the file and try again."
+          ? "The file changed in Adrian. Reload the file and try again."
           : data.error === "forbidden"
             ? "You do not have permission to edit this file."
             : "Could not save file changes."
@@ -422,7 +422,7 @@ function RepositoryFilePreviewContent({
       setCurrentSha(data.commit.content.sha)
     }
 
-    toast.success("File saved to GitHub")
+    toast.success("File saved to Adrian")
     setIsEditing(false)
     setIsCommitDialogOpen(false)
     router.refresh()
@@ -542,7 +542,7 @@ function RepositoryFilePreviewContent({
                   {target.htmlUrl ? (
                     <DropdownMenuItem onClick={handleOpenGitHub}>
                       <SquareArrowOutUpRight />
-                      Open in GitHub
+                      Open in Adrian
                     </DropdownMenuItem>
                   ) : null}
                   <DropdownMenuSeparator />
@@ -706,8 +706,8 @@ function RepositoryFilePreviewContent({
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex size-8 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                  aria-label="Open file on GitHub"
-                  title="Open file on GitHub"
+                  aria-label="Open file in Adrian"
+                  title="Open file in Adrian"
                 >
                   <SquareArrowOutUpRight className="size-4" />
                 </A>
@@ -878,7 +878,7 @@ function RepositoryFilePreviewContent({
               </code>{" "}
               from{" "}
               <code className="rounded-sm border px-1 font-bold">{branch}</code>
-              . This creates a commit on GitHub.
+              . This creates a commit in Adrian.
             </AlertDialogDescription>
           </AlertDialogHeader>
 

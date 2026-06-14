@@ -235,7 +235,7 @@ export default function FileEditorDialog({
     if (!response.ok) {
       toast.error(
         data.error === "conflict"
-          ? "The file changed on GitHub. Reload the file and try again."
+          ? "The file changed in Adrian. Reload the file and try again."
           : data.error === "forbidden"
             ? "You do not have permission to edit this file."
             : "Could not save file changes."
@@ -247,7 +247,7 @@ export default function FileEditorDialog({
       setCurrentSha(data.commit.content.sha)
     }
 
-    toast.success("File saved to GitHub")
+    toast.success("File saved to Adrian")
     setIsOpen(false)
     router.refresh()
   }

@@ -35,7 +35,7 @@ export default function RepositoryRow({
             }}
           >
             <SquareArrowOutUpRight />
-            Open in GitHub
+            Open in Adrian
           </ContextMenuItem>
           <ContextMenuItem
             onClick={() => {

@@ -1,15 +1,36 @@
-export async function GET(request: Request) {
-  const baseUrl = new URL(request.url).origin
+import { getBaseUrl, textResponse } from "@/lib/agent-discovery"
 
-  return new Response(`User-agent: *
+const AI_USER_AGENTS = [
+  "GPTBot",
+  "ChatGPT-User",
+  "OAI-SearchBot",
+  "ClaudeBot",
+  "Claude-User",
+  "PerplexityBot",
+  "Perplexity-User",
+  "Google-Extended",
+  "GoogleOther",
+  "GoogleOther-Image",
+  "GoogleOther-Video",
+  "Applebot",
+  "Applebot-Extended",
+  "Bytespider",
+  "CCBot",
+  "DuckAssistBot",
+]
+
+export async function GET(request: Request) {
+  const baseUrl = getBaseUrl(request)
+  const aiRules = AI_USER_AGENTS.map(
+    (userAgent) => `User-agent: ${userAgent}\nAllow: /`
+  ).join("\n\n")
+
+  return textResponse(`User-agent: *
 Allow: /
+
+${aiRules}
 
 Sitemap: ${baseUrl}/sitemap.xml
 Host: ${baseUrl}
-`, {
-    headers: {
-      "Cache-Control": "public, max-age=3600, s-maxage=3600",
-      "Content-Type": "text/plain; charset=utf-8",
-    },
-  })
+`)
 }

@@ -299,7 +299,7 @@ export default function ProfileRepositories({
         {isRemoteLoading ? (
           <span className="inline-flex items-center gap-2">
             <Loader className="-ml-1 scale-90" />
-            Searching GitHub
+            Searching Adrian
           </span>
         ) : null}
         {isRemoteLoading ? " " : null}
@@ -334,7 +334,7 @@ export default function ProfileRepositories({
                         }}
                       >
                         <SquareArrowOutUpRight />
-                        Open in GitHub
+                        Open in Adrian
                       </ContextMenuItem>
                       <ContextMenuItem
                         onClick={() => {
