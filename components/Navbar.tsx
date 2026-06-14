@@ -117,7 +117,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
                   Open in new tab
                 </ContextMenuItem>
               </A>
-              <A href="/ESHAYAT102/Xenon">
+              <A href="/">
                 <ContextMenuItem>
                   <BookMarked />
                   Open repository
@@ -132,7 +132,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
         >
           <Link href="/" className="flex items-center gap-2 font-bold">
             <Image className="h-6" src="/favicon.ico" alt="Logo"></Image>
-            <span>Xenon</span>
+            <span>Adrian</span>
           </Link>
         </BrowserContextMenu>
       </div>

@@ -18,7 +18,8 @@
 # production
 /build
 
-# self-hosted local data
+# local app data
+/.adrian-data
 /.xenon-data
 /.smoke-data
 

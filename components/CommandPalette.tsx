@@ -89,7 +89,7 @@ type SearchUserResult = {
   type: "User" | "Organization" | string
 }
 
-const RECENT_COMMANDS_KEY = "xenon:recent-commands"
+const RECENT_COMMANDS_KEY = "adrian:recent-commands"
 const MAX_RECENTS = 12
 
 function getMatchingThemeFamily(query: string) {

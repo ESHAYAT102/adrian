@@ -13,13 +13,13 @@ import {
 let dataDir: string
 
 beforeEach(() => {
-  dataDir = mkdtempSync(join(tmpdir(), "xenon-selfhost-"))
-  process.env.XENON_DATA_DIR = dataDir
+  dataDir = mkdtempSync(join(tmpdir(), "adrian-"))
+  process.env.ADRIAN_DATA_DIR = dataDir
 })
 
 afterEach(() => {
   rmSync(dataDir, { force: true, recursive: true })
-  delete process.env.XENON_DATA_DIR
+  delete process.env.ADRIAN_DATA_DIR
 })
 
 describe("local git backend", () => {
@@ -47,9 +47,9 @@ describe("local git backend", () => {
   it("reads README content from the default branch", () => {
     const repo = createLocalRepository({ name: "docs" })
     const readmePath = join(repo.workTreePath, "README.md")
-    writeFileSync(readmePath, "# Docs\n\nHello self-hosted Xenon.\n")
+    writeFileSync(readmePath, "# Docs\n\nHello from Adrian.\n")
     repo.commitAll("Add README")
 
-    expect(getRepositoryReadme("docs")?.content).toContain("Hello self-hosted Xenon")
+    expect(getRepositoryReadme("docs")?.content).toContain("Hello from Adrian")
   })
 })

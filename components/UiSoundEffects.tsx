@@ -64,9 +64,9 @@ const sounds = {
 
 export type UiSoundName = keyof typeof sounds
 
-export const UI_SOUNDS_DISABLED_KEY = "xenon:ui-sounds-disabled"
-export const UI_SOUNDS_CHANGED_EVENT = "xenon:ui-sounds-changed"
-export const UI_SOUND_PLAY_EVENT = "xenon:ui-sound-play"
+export const UI_SOUNDS_DISABLED_KEY = "adrian:ui-sounds-disabled"
+export const UI_SOUNDS_CHANGED_EVENT = "adrian:ui-sounds-changed"
+export const UI_SOUND_PLAY_EVENT = "adrian:ui-sound-play"
 
 export function areUiSoundsDisabled() {
   if (typeof window === "undefined") return false

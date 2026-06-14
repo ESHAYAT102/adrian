@@ -24,8 +24,8 @@ type OAuthStatePayload = {
   state: string
 }
 
-export const SESSION_COOKIE_NAME = "Xenon_session"
-export const OAUTH_STATE_COOKIE_NAME = "Xenon_oauth_state"
+export const SESSION_COOKIE_NAME = "Adrian_session"
+export const OAUTH_STATE_COOKIE_NAME = "Adrian_oauth_state"
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30
 const OAUTH_STATE_MAX_AGE = 60 * 10

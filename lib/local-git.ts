@@ -23,8 +23,8 @@ export type LocalRepositoryHandle = LocalRepositoryMetadata & {
 }
 
 const DEFAULT_BRANCH = "main"
-const GIT_AUTHOR = "Xenon Self Hosted"
-const GIT_EMAIL = "xenon@selfhost.local"
+const GIT_AUTHOR = "Adrian"
+const GIT_EMAIL = "adrian@selfhost.local"
 
 function runGit(args: string[], cwd?: string) {
   return execFileSync("git", args, {
@@ -41,7 +41,7 @@ function runGit(args: string[], cwd?: string) {
 }
 
 export function getDataDir() {
-  return process.env.XENON_DATA_DIR || join(process.cwd(), ".xenon-data")
+  return process.env.ADRIAN_DATA_DIR || join(process.cwd(), ".adrian-data")
 }
 
 function getReposDir() {
@@ -143,7 +143,7 @@ export function createLocalRepository({
   runGit(["config", "user.email", GIT_EMAIL], paths.workTreePath)
   writeFileSync(
     join(paths.workTreePath, "README.md"),
-    `# ${normalized}\n\n${description || "A self-hosted Xenon repository."}\n`
+    `# ${normalized}\n\n${description || "An Adrian repository."}\n`
   )
   runGit(["add", "README.md"], paths.workTreePath)
   runGit(["commit", "-m", "Initial commit"], paths.workTreePath)

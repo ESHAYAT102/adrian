@@ -17,7 +17,7 @@ export async function generateMetadata({
   const { repo } = await params
   const repository = getLocalRepository(repo)
   return {
-    title: repository ? `${repository.name} · Xenon self-hosted` : "Repository",
+    title: repository ? `${repository.name} · Adrian` : "Repository",
   }
 }
 

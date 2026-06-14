@@ -1,8 +1,8 @@
 const allowedDevOrigins = [
   "localhost",
   "127.0.0.1",
-  "xenon.localhost",
-  "*.xenon.localhost",
+  "adrian.localhost",
+  "*.adrian.localhost",
 ]
 
 const nextConfig = {

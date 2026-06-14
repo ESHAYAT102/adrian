@@ -15,8 +15,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
-ENV PORT=3000
-ENV XENON_DATA_DIR=/data
+ENV PORT=8390
+ENV ADRIAN_DATA_DIR=/data
 RUN apt-get update \
   && apt-get install -y --no-install-recommends git ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
@@ -26,5 +26,5 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/app/favicon.ico ./app/favicon.ico
 VOLUME ["/data"]
-EXPOSE 3000
+EXPOSE 8390
 CMD ["bun", "run", "start"]

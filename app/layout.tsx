@@ -11,10 +11,10 @@ const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: "Xenon self-hosted",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:8390"),
+  title: "Adrian",
   description:
-    "Xenon self-hosted is a Dockerized, local-first Git workspace with no GitHub dependency.",
+    "Adrian is a Dockerized, local-first Git workspace with no GitHub dependency.",
   robots: {
     follow: false,
     index: false,

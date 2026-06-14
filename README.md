@@ -1,6 +1,6 @@
-# Xenon<sup>self-hosted</sup>
+# Adrian
 
-Xenon<sup>self-hosted</sup> is a Dockerized, local-first Git workspace. It keeps the Xenon feel, but it does **not** depend on GitHub: repositories live on your own server, metadata is stored on disk, and clone endpoints are served by the app.
+Adrian is a Dockerized, local-first Git workspace inspired by Project Hail Mary. It does **not** depend on GitHub: repositories live on your own server, metadata is stored on disk, and clone endpoints are served by the app.
 
 ## Features
 
@@ -20,26 +20,26 @@ docker compose up --build
 Then open:
 
 ```txt
-http://localhost:3000
+http://localhost:8390
 ```
 
-Data is stored in the named Docker volume `xenon-data`.
+Data is stored in the named Docker volume `adrian-data`.
 
 ## Clone a repository
 
 After creating a repository named `demo`, clone it with:
 
 ```bash
-git clone http://localhost:3000/git/demo.git
+git clone http://localhost:8390/git/demo.git
 ```
 
 ## Environment variables
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `XENON_DATA_DIR` | `/data` in Docker, `.xenon-data` locally | Where repos, worktrees, and metadata live |
-| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Public URL used by metadata |
-| `PORT` | `3000` | Web server port |
+| `ADRIAN_DATA_DIR` | `/data` in Docker, `.adrian-data` locally | Where repos, worktrees, and metadata live |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:8390` | Public URL used by metadata |
+| `PORT` | `8390` | Web server port |
 
 ## Local development
 

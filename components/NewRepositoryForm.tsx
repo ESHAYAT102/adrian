@@ -102,7 +102,7 @@ export default function NewRepositoryForm({
         <CardHeader>
           <CardTitle>Create a new repository</CardTitle>
           <CardDescription>
-            Start a fresh GitHub repository without leaving Xenon.
+            Start a fresh local Git repository without leaving Adrian.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

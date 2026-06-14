@@ -5,7 +5,7 @@ import { listLocalRepositories } from "@/lib/local-git"
 function Brand() {
   return (
     <Link href="/" className="text-2xl font-black tracking-tight text-foreground">
-      Xenon<sup className="ml-1 rounded-full border border-primary/30 bg-primary/10 px-1.5 py-0.5 align-super text-[10px] font-semibold text-primary">self-hosted</sup>
+      Adrian
     </Link>
   )
 }

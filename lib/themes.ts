@@ -1,6 +1,6 @@
 export type ThemeMode = "light" | "dark"
 export type ThemeFamilyId =
-  | "xenon"
+  | "adrian"
   | "catppuccin"
   | "dracula"
   | "tokyo-night"
@@ -23,8 +23,8 @@ export type ThemeFamily = {
 
 export const THEME_FAMILIES = [
   {
-    id: "xenon",
-    name: "Xenon",
+    id: "adrian",
+    name: "Adrian",
     description: "Clean default GitHub-style tones",
     swatches: ["#f6f8fa", "#24292f"],
     lightTheme: "light",

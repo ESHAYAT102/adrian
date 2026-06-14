@@ -1,15 +1,15 @@
 services:
-  xenon:
+  adrian:
     build: .
-    container_name: xenon-selfhost
+    container_name: adrian
     environment:
-      NEXT_PUBLIC_SITE_URL: http://localhost:3000
-      XENON_DATA_DIR: /data
+      NEXT_PUBLIC_SITE_URL: http://localhost:8390
+      ADRIAN_DATA_DIR: /data
     ports:
-      - "3000:3000"
+      - "8390:8390"
     volumes:
-      - xenon-data:/data
+      - adrian-data:/data
     restart: unless-stopped
 
 volumes:
-  xenon-data:
+  adrian-data:
