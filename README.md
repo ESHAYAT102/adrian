@@ -14,6 +14,9 @@ Adrian is a Dockerized, local-first Git workspace inspired by Project Hail Mary.
 ## Quick start with Docker Compose
 
 ```bash
+git clone https://github.com/ESHAYAT102/adrian.git
+cd adrian
+bun i
 docker compose up --build
 ```
 
