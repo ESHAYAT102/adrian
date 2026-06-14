@@ -40,9 +40,7 @@ export default async function NewRepositoryPage() {
         <main className="mx-auto max-w-6xl px-5 pt-24 pb-10">
           <div className="grid grid-cols-1 gap-6">
             <section>
-              <NewRepositoryForm
-                canCreateRepositories={settings.scopes.includes("repo")}
-              />
+              <NewRepositoryForm canCreateRepositories={true} />
             </section>
           </div>
         </main>
