@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -21,10 +21,20 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [mode, setMode] = useState<"login" | "register">("login")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const action = mode === "login" ? "/api/auth/login" : "/api/auth/register"
+
+  useEffect(() => {
+    const redirectedError = searchParams.get("authError")
+    if (!redirectedError) return
+
+    setError(redirectedError)
+    toast.error(redirectedError)
+    router.replace("/")
+  }, [router, searchParams])
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
