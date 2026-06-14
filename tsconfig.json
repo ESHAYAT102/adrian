@@ -24,8 +24,14 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/theme-provider.tsx",
+    "components/ui/**/*.ts",
+    "components/ui/**/*.tsx",
+    "lib/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],

@@ -18,6 +18,10 @@
 # production
 /build
 
+# self-hosted local data
+/.xenon-data
+/.smoke-data
+
 # misc
 .DS_Store
 *.pem

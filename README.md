@@ -1,54 +1,62 @@
-# Xenon is Raycast for GitHub in the web: fast navigation, rich repo browsing, and keyboard-driven workflows.
+# Xenon<sup>self-hosted</sup>
 
-Features
+Xenon<sup>self-hosted</sup> is a Dockerized, local-first Git workspace. It keeps the Xenon feel, but it does **not** depend on GitHub: repositories live on your own server, metadata is stored on disk, and clone endpoints are served by the app.
 
-- Trending repositories discovery
-- Profile pages with activity and repositories
-- Repository explorer with file tree, previews, and edits
-- Command palette with slash commands and quick actions
-- Keyboard shortcuts for repo actions and tabs
-- Context menus for links, inputs, and media
+## Features
 
-Tech stack
+- Create local Git repositories from the web UI
+- Browse repositories, files, README content, and recent commits
+- Commit simple file changes from the browser
+- Clone repositories over HTTP using dumb Git endpoints
+- Persist everything in a mounted `/data` volume
+- Self-hostable with Docker or Docker Compose
 
-- Next.js 16 (App Router, Turbopack)
-- React 19
-- Tailwind CSS + shadcn/ui
-- GitHub OAuth with encrypted first-party session cookies
-- cmdk, sonner, react-markdown
+## Quick start with Docker Compose
 
-Getting started
+```bash
+docker compose up --build
+```
 
-1. Install dependencies: `bun install`
-2. Create `.env` from `.env.example`
-3. Start dev server: `bun dev`
+Then open:
 
-Portless
+```txt
+http://localhost:3000
+```
 
-- This app supports `portless` for stable local URLs such as `https://xenon.localhost`.
-- Run `portless` from the repo root to use the project config in `portless.json`.
-- When using `portless`, set `NEXTAUTH_URL=https://xenon.localhost` in your local `.env`.
-- Next.js dev requests from `xenon.localhost` and `*.xenon.localhost` are explicitly allowed in `next.config.mjs`.
-- On Arch Linux, `portless` `0.11.0` may fail while trusting its local CA with `update-ca-trust`. The proxy can still start, but browsers may show a certificate warning until the CA is installed correctly.
-- Workaround on Arch: copy the generated CA into `/etc/ca-certificates/trust-source/anchors/` and then run `sudo trust extract-compat`.
-- Temporary workaround: run plain Next with `bun dev`, or use `portless proxy start --port 1355 --https` if you want to avoid binding port `443`.
+Data is stored in the named Docker volume `xenon-data`.
 
-Environment variables
+## Clone a repository
 
-- `GITHUB_CLIENT_ID`
-- `GITHUB_CLIENT_SECRET`
-- `NEXTAUTH_SECRET`
-- `NEXTAUTH_URL`
+After creating a repository named `demo`, clone it with:
 
-Scripts
+```bash
+git clone http://localhost:3000/git/demo.git
+```
+
+## Environment variables
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `XENON_DATA_DIR` | `/data` in Docker, `.xenon-data` locally | Where repos, worktrees, and metadata live |
+| `NEXT_PUBLIC_SITE_URL` | `http://localhost:3000` | Public URL used by metadata |
+| `PORT` | `3000` | Web server port |
+
+## Local development
+
+```bash
+bun install
+bun run dev
+```
+
+## Scripts
 
 - `bun dev` runs the dev server
 - `bun run build` builds the app
 - `bun run start` starts the production server
 - `bun run lint` runs ESLint
 - `bun run typecheck` runs TypeScript
+- `bun run test` runs Vitest
 
-Notes
+## Notes
 
-- Add `http://localhost:3000/api/auth/github/callback` as the GitHub OAuth callback URL for local development.
-- If you use `portless`, also add `https://xenon.localhost/api/auth/github/callback` as a GitHub OAuth callback URL.
+This version intentionally removes GitHub OAuth/API dependency. It is a standalone Git host designed for small self-hosted setups and homelabs.

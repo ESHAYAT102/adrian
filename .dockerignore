@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.xenon-data
+.smoke-data
+Dockerfile
+docker-compose.yml
+*.log
+.env*

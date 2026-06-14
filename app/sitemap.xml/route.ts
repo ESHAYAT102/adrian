@@ -1,4 +1,6 @@
-import { getBaseUrl } from "@/lib/agent-discovery"
+function getBaseUrl(request: Request) {
+  return new URL(request.url).origin
+}
 
 function xmlEscape(value: string) {
   return value
@@ -11,24 +13,12 @@ function xmlEscape(value: string) {
 
 export async function GET(request: Request) {
   const baseUrl = getBaseUrl(request)
-  const urls = [
-    "/",
-    "/llms.txt",
-    "/llms-full.txt",
-    "/openapi.json",
-    "/.well-known/agent-skills/index.json",
-  ]
-
   const body = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(
-    (path) => `  <url>
-    <loc>${xmlEscape(`${baseUrl}${path}`)}</loc>
+  <url>
+    <loc>${xmlEscape(baseUrl)}</loc>
     <changefreq>daily</changefreq>
-  </url>`
-  )
-  .join("\n")}
+  </url>
 </urlset>
 `
 
