@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   ),
   title: "Xenon",
   description:
-    "Xenon is a GitHub client with repo browsing, profiles, command palette, and in-app actions.",
+    "Xenon is Raycast for GitHub in the web: repo browsing, profiles, command palette, and in-app actions.",
   alternates: {
     types: {
       "text/plain": "/llms.txt",

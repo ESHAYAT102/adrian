@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown"
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism"
 import rehypeRaw from "rehype-raw"
+import rehypeSanitize from "rehype-sanitize"
 import remarkGfm from "remark-gfm"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
@@ -514,7 +515,7 @@ export default function MarkdownPreview({
       className="max-w-[90vw] min-w-0 space-y-4 overflow-hidden text-sm leading-7 text-muted-foreground **:max-w-[min(85vw,100%)]!"
     >
       <ReactMarkdown
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, rehypeSanitize]}
         remarkPlugins={[remarkGfm]}
         components={{
           a: ({ href, children, ...props }) => {

@@ -1,4 +1,4 @@
-Xenon is a GitHub client focused on fast navigation, rich repo browsing, and keyboard-driven workflows.
+Xenon is Raycast for GitHub in the web: fast navigation, rich repo browsing, and keyboard-driven workflows.
 
 Features
 
@@ -14,7 +14,7 @@ Tech stack
 - Next.js 16 (App Router, Turbopack)
 - React 19
 - Tailwind CSS + shadcn/ui
-- NextAuth (GitHub OAuth)
+- GitHub OAuth with encrypted first-party session cookies
 - cmdk, sonner, react-markdown
 
 Getting started

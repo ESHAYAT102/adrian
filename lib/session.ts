@@ -1,4 +1,9 @@
-import { createHmac, randomBytes, timingSafeEqual } from "node:crypto"
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from "node:crypto"
 
 import { cookies } from "next/headers"
 
@@ -24,6 +29,9 @@ export const OAUTH_STATE_COOKIE_NAME = "Xenon_oauth_state"
 
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30
 const OAUTH_STATE_MAX_AGE = 60 * 10
+const SESSION_COOKIE_VERSION = "v2"
+const SESSION_IV_BYTES = 12
+const SESSION_AUTH_TAG_BYTES = 16
 
 function getSessionSecret() {
   const secret = process.env.NEXTAUTH_SECRET
@@ -35,47 +43,79 @@ function getSessionSecret() {
   return secret
 }
 
-function encodeBase64Url(value: string) {
-  return Buffer.from(value, "utf8").toString("base64url")
+function getSessionEncryptionKey() {
+  return createHash("sha256").update(getSessionSecret()).digest()
+}
+
+function encodeBase64Url(value: string | Buffer) {
+  return Buffer.from(value).toString("base64url")
 }
 
 function decodeBase64Url(value: string) {
   return Buffer.from(value, "base64url").toString("utf8")
 }
 
-function sign(value: string) {
-  return createHmac("sha256", getSessionSecret())
-    .update(value)
-    .digest("base64url")
+function encryptSessionPayload(payload: SessionPayload) {
+  const iv = randomBytes(SESSION_IV_BYTES)
+  const cipher = createCipheriv("aes-256-gcm", getSessionEncryptionKey(), iv, {
+    authTagLength: SESSION_AUTH_TAG_BYTES,
+  })
+  const encrypted = Buffer.concat([
+    cipher.update(JSON.stringify(payload), "utf8"),
+    cipher.final(),
+  ])
+  const authTag = cipher.getAuthTag()
+
+  return [
+    SESSION_COOKIE_VERSION,
+    encodeBase64Url(iv),
+    encodeBase64Url(authTag),
+    encodeBase64Url(encrypted),
+  ].join(".")
 }
 
-function verify(value: string, signature: string) {
-  const expectedSignature = sign(value)
+function decryptSessionPayload(cookieValue: string) {
+  const [version, encodedIv, encodedAuthTag, encodedEncrypted] =
+    cookieValue.split(".")
 
-  return timingSafeEqual(
-    Buffer.from(signature, "utf8"),
-    Buffer.from(expectedSignature, "utf8")
-  )
+  if (
+    version !== SESSION_COOKIE_VERSION ||
+    !encodedIv ||
+    !encodedAuthTag ||
+    !encodedEncrypted
+  ) {
+    return null
+  }
+
+  const iv = Buffer.from(encodedIv, "base64url")
+  const authTag = Buffer.from(encodedAuthTag, "base64url")
+  const encrypted = Buffer.from(encodedEncrypted, "base64url")
+
+  const decipher = createDecipheriv("aes-256-gcm", getSessionEncryptionKey(), iv, {
+    authTagLength: SESSION_AUTH_TAG_BYTES,
+  })
+  decipher.setAuthTag(authTag)
+
+  const decrypted = Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final(),
+  ]).toString("utf8")
+
+  return JSON.parse(decrypted) as SessionPayload
 }
 
 export function encodeSessionCookie(user: SessionUser) {
-  const payload = encodeBase64Url(
-    JSON.stringify({ user } satisfies SessionPayload)
-  )
-  const signature = sign(payload)
-
-  return `${payload}.${signature}`
+  return encryptSessionPayload({ user })
 }
 
 export function decodeSessionCookie(cookieValue?: string | null) {
   if (!cookieValue) return null
 
-  const [payload, signature] = cookieValue.split(".")
-  if (!payload || !signature) return null
-  if (!verify(payload, signature)) return null
-
-  const parsed = JSON.parse(decodeBase64Url(payload)) as SessionPayload
-  return parsed.user
+  try {
+    return decryptSessionPayload(cookieValue)?.user ?? null
+  } catch {
+    return null
+  }
 }
 
 export async function getSessionUser() {

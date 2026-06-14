@@ -8,6 +8,8 @@ import {
 
 export const runtime = "nodejs"
 
+const DEFAULT_GITHUB_OAUTH_SCOPE = "read:user user:email public_repo notifications"
+
 export async function GET(request: NextRequest) {
   const clientId = process.env.GITHUB_CLIENT_ID
 
@@ -22,7 +24,7 @@ export async function GET(request: NextRequest) {
   const githubUrl = new URL("https://github.com/login/oauth/authorize")
   githubUrl.searchParams.set("client_id", clientId)
   githubUrl.searchParams.set("redirect_uri", redirectUri.toString())
-  githubUrl.searchParams.set("scope", "user repo delete_repo notifications")
+  githubUrl.searchParams.set("scope", DEFAULT_GITHUB_OAUTH_SCOPE)
   githubUrl.searchParams.set("state", state)
 
   const response = NextResponse.redirect(githubUrl)

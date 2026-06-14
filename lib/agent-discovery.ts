@@ -8,7 +8,7 @@ import {
 
 export const SITE_NAME = "Xenon"
 export const SITE_DESCRIPTION =
-  "Xenon is a GitHub client for browsing profiles, repositories, files, README content, commits, issues, pull requests, and releases."
+  "Xenon is Raycast for GitHub in the web: a keyboard-first workspace for browsing profiles, repositories, files, README content, commits, issues, pull requests, and releases."
 
 const MARKDOWN_HEADERS = {
   "Cache-Control": "public, max-age=300, s-maxage=300",
