@@ -58,6 +58,19 @@ function runGit(args: string[], cwd?: string) {
   }).trim()
 }
 
+function refExists(cwd: string, ref: string) {
+  try {
+    execFileSync("git", ["rev-parse", "--verify", `${ref}^{commit}`], {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function getDataDir() {
   return process.env.ADRIAN_DATA_DIR || join(process.cwd(), ".adrian-data")
 }
@@ -196,12 +209,14 @@ function updateRepoMetadata(owner: string, name: string, updater: (repo: LocalRe
 }
 
 export function createLocalRepository({
+  autoInit = true,
   description = null,
   homepage = null,
   name,
   owner,
   private: isPrivate = false,
 }: {
+  autoInit?: boolean
   description?: string | null
   homepage?: string | null
   name: string
@@ -225,12 +240,14 @@ export function createLocalRepository({
   runGit(["init", "-b", DEFAULT_BRANCH], paths.workTreePath)
   runGit(["config", "user.name", GIT_AUTHOR], paths.workTreePath)
   runGit(["config", "user.email", GIT_EMAIL], paths.workTreePath)
-  writeFileSync(join(paths.workTreePath, "README.md"), `# ${normalized}\n\n${description || "An Adrian repository."}\n`)
-  runGit(["add", "README.md"], paths.workTreePath)
-  runGit(["commit", "-m", "Initial commit"], paths.workTreePath)
   runGit(["init", "--bare", "-b", DEFAULT_BRANCH], paths.barePath)
   runGit(["remote", "add", "origin", paths.barePath], paths.workTreePath)
-  runGit(["push", "-u", "origin", DEFAULT_BRANCH], paths.workTreePath)
+  if (autoInit) {
+    writeFileSync(join(paths.workTreePath, "README.md"), `# ${normalized}\n\n${description || "An Adrian repository."}\n`)
+    runGit(["add", "README.md"], paths.workTreePath)
+    runGit(["commit", "-m", "Initial commit"], paths.workTreePath)
+    runGit(["push", "-u", "origin", DEFAULT_BRANCH], paths.workTreePath)
+  }
   runGit(["update-server-info"], paths.barePath)
 
   const metadata: LocalRepositoryMetadata = {
@@ -302,6 +319,7 @@ function getTreeEntries(owner: string, name: string, path = "", branch?: string)
   const repo = getLocalRepository(owner, name)
   if (!repo) return []
   const ref = branch || repo.defaultBranch
+  if (!refExists(repo.workTreePath, ref)) return []
   const treeish = path ? `${ref}:${path}` : ref
   try {
     return runGit(["ls-tree", treeish], repo.workTreePath)
@@ -326,6 +344,7 @@ export function getRepositoryContents(owner: string, name: string, path = "", br
 export function getRepositoryFiles(owner: string, name: string, branch?: string) {
   const repo = getLocalRepository(owner, name)
   if (!repo) return []
+  if (!refExists(repo.workTreePath, branch || repo.defaultBranch)) return []
   try {
     return runGit(["ls-tree", "-r", "--name-only", branch || repo.defaultBranch], repo.workTreePath).split("\n").filter(Boolean)
   } catch {
@@ -338,6 +357,7 @@ export function getRepositoryFileText(owner: string, name: string, path: string,
   if (!repo) return null
   const normalized = normalize(path)
   if (normalized.startsWith("..")) return null
+  if (!refExists(repo.workTreePath, branch || repo.defaultBranch)) return null
   try {
     const sha = runGit(["rev-parse", `${branch || repo.defaultBranch}:${normalized}`], repo.workTreePath)
     return { content: runGit(["show", `${branch || repo.defaultBranch}:${normalized}`], repo.workTreePath), name: basename(normalized), path: normalized, sha }
@@ -357,6 +377,7 @@ export function getRepositoryReadme(owner: string, name: string, branch?: string
 export function getRepositoryCommits(owner: string, name: string, limit = 20, branch?: string) {
   const repo = getLocalRepository(owner, name)
   if (!repo) return []
+  if (!refExists(repo.workTreePath, branch || repo.defaultBranch)) return []
   try {
     return runGit(["log", `-${limit}`, "--date=iso-strict", "--format=%H%x1f%an%x1f%ad%x1f%s", branch || repo.defaultBranch], repo.workTreePath)
       .split("\n")

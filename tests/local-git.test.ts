@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import {
   createLocalRepository,
   getLocalRepository,
+  getRepositoryContents,
   getRepositoryClonePath,
   getRepositoryReadme,
   listLocalRepositories,
@@ -55,6 +56,18 @@ describe("local git backend", () => {
     ])
     expect(listRepositoriesForOwner("eshayat")).toHaveLength(1)
     expect(listRepositoriesForOwner("alice")).toHaveLength(0)
+  })
+
+  it("creates truly empty repositories when autoInit is false", () => {
+    createLocalRepository({
+      autoInit: false,
+      description: "This should not create a README",
+      name: "empty",
+      owner: "eshayat",
+    })
+
+    expect(getRepositoryContents("eshayat", "empty")).toEqual([])
+    expect(getRepositoryReadme("eshayat", "empty")).toBeNull()
   })
 
   it("allows the same repository name under different users", () => {

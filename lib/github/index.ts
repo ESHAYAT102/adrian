@@ -269,6 +269,7 @@ export async function updateGitHubViewerSettings(user: SessionUser | null, input
 
 export async function createGitHubRepository(user: SessionUser, input: GitHubCreateRepositoryInput): Promise<RepositoryResult> {
   const repo = createLocalRepository({
+    autoInit: input.auto_init ?? false,
     description: input.description ?? null,
     homepage: input.homepage ?? null,
     name: input.name,
