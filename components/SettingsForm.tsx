@@ -1,7 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2, RefreshCw, Save } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Loader2, RefreshCw, Save, Upload } from "lucide-react"
+import { toast } from "sonner"
 
 import A from "@/components/A"
 import { Badge } from "@/components/ui/badge"
@@ -42,6 +44,7 @@ function scopeLabel(scope: string) {
 }
 
 export default function SettingsForm({ settings }: SettingsFormProps) {
+  const router = useRouter()
   const [formState, setFormState] = useState({
     bio: settings.bio ?? "",
     blog: settings.blog ?? "",
@@ -52,10 +55,62 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     twitterUsername: settings.twitterUsername ?? "",
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(settings.avatarUrl)
   const [notice, setNotice] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const canEdit = settings.canEditProfile
+
+  const handleAvatarUpload = async () => {
+    if (!avatarFile) {
+      toast.error("Choose an image first")
+      return
+    }
+
+    setIsUploadingAvatar(true)
+    setError(null)
+    setNotice(null)
+
+    const formData = new FormData()
+    formData.set("avatar", avatarFile)
+
+    try {
+      const response = await fetch("/api/settings/avatar", {
+        body: formData,
+        method: "POST",
+      })
+      const data = (await response.json().catch(() => ({}))) as {
+        avatarUrl?: string
+        error?: string
+      }
+
+      if (!response.ok || !data.avatarUrl) {
+        const message =
+          data.error === "unsupported_image_type"
+            ? "Please upload a PNG, JPEG, GIF, or WebP image."
+            : data.error === "image_too_large"
+              ? "Profile pictures must be 2 MB or smaller."
+              : "Could not upload profile picture."
+        setError(message)
+        toast.error(message)
+        return
+      }
+
+      setAvatarPreviewUrl(data.avatarUrl)
+      setAvatarFile(null)
+      setNotice("Profile picture updated.")
+      toast.success("Profile picture updated")
+      router.refresh()
+    } catch {
+      const message = "Could not upload profile picture."
+      setError(message)
+      toast.error(message)
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -173,6 +228,60 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <FieldGroup>
+            <Field>
+              <FieldLabel>Profile picture</FieldLabel>
+              <FieldContent>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  <div
+                    className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-muted bg-cover bg-center text-2xl font-semibold text-muted-foreground"
+                    style={
+                      avatarPreviewUrl
+                        ? { backgroundImage: `url(${avatarPreviewUrl})` }
+                        : undefined
+                    }
+                    aria-label="Current profile picture"
+                  >
+                    {avatarPreviewUrl ? null : settings.login.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-1 flex-col gap-3">
+                    <Input
+                      disabled={!canEdit || isUploadingAvatar}
+                      type="file"
+                      accept="image/png,image/jpeg,image/gif,image/webp"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] ?? null
+                        setAvatarFile(file)
+                        if (file) {
+                          setAvatarPreviewUrl(URL.createObjectURL(file))
+                        } else {
+                          setAvatarPreviewUrl(settings.avatarUrl)
+                        }
+                      }}
+                    />
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Button
+                        className="rounded-xl"
+                        disabled={!canEdit || !avatarFile || isUploadingAvatar}
+                        onClick={handleAvatarUpload}
+                        type="button"
+                        variant="outline"
+                      >
+                        {isUploadingAvatar ? (
+                          <Loader2 className="animate-spin" />
+                        ) : (
+                          <Upload />
+                        )}
+                        Upload picture
+                      </Button>
+                      <FieldDescription>
+                        PNG, JPEG, GIF, or WebP. Max 2 MB.
+                      </FieldDescription>
+                    </div>
+                  </div>
+                </div>
+              </FieldContent>
+            </Field>
+
             <Field>
               <FieldLabel>Name</FieldLabel>
               <FieldContent>

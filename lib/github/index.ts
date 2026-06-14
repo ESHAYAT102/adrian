@@ -1,6 +1,7 @@
 import { extname } from "node:path"
 
 import type { SessionUser } from "@/lib/session"
+import { getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-users"
 import {
   createLocalRepository,
   deleteLocalRepository,
@@ -221,18 +222,19 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
 
 function toProfile(username: string, viewer?: SessionUser | null): GitHubProfile {
   const repos = listLocalRepositories().filter((repo) => repo.owner === username)
+  const localUser = getLocalUserByUsername(username)
   return {
-    avatar_url: null,
+    avatar_url: localUser?.avatarUrl ?? null,
     bio: viewer?.login === username ? "Your Adrian account" : "Adrian user",
     blog: null,
     company: null,
-    created_at: repos.at(-1)?.createdAt ?? new Date(0).toISOString(),
+    created_at: localUser?.createdAt ?? repos.at(-1)?.createdAt ?? new Date(0).toISOString(),
     followers: 0,
     following: 0,
     html_url: `/${username}`,
     location: null,
     login: username,
-    name: viewer?.login === username ? viewer.name : username,
+    name: localUser?.displayName ?? (viewer?.login === username ? viewer.name : username),
     public_repos: repos.length,
     type: "User",
   }
@@ -240,25 +242,28 @@ function toProfile(username: string, viewer?: SessionUser | null): GitHubProfile
 
 export async function getGitHubViewerSettings(user: SessionUser | null): Promise<GitHubViewerSettings> {
   const login = user?.login ?? "guest"
+  const localUser = user ? getLocalUserByUsername(user.login) : null
   return {
-    avatarUrl: user?.image ?? null,
+    avatarUrl: localUser?.avatarUrl ?? user?.image ?? null,
     bio: null,
     blog: null,
     canEditProfile: true,
     canReadNotifications: true,
     company: null,
-    email: user?.email ?? null,
+    email: localUser?.email ?? user?.email ?? null,
     hireable: null,
     htmlUrl: `/${login}`,
     location: null,
     login,
-    name: user?.name ?? login,
+    name: localUser?.displayName ?? user?.name ?? login,
     scopes: ["adrian:local-git"],
     twitterUsername: null,
   }
 }
 
-export async function updateGitHubViewerSettings(user: SessionUser | null, _input: GitHubViewerSettingsUpdateInput): Promise<SettingsResult> {
+export async function updateGitHubViewerSettings(user: SessionUser | null, input: GitHubViewerSettingsUpdateInput): Promise<SettingsResult> {
+  if (!user) return { error: "unauthorized", settings: await getGitHubViewerSettings(null), status: 401 }
+  updateLocalUserProfile(user.login, { displayName: input.name })
   return { settings: await getGitHubViewerSettings(user) }
 }
 

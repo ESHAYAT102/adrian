@@ -7,6 +7,7 @@ import {
   createLocalUser,
   getLocalUserByUsername,
   listLocalUsers,
+  updateLocalUserProfile,
   verifyLocalUserPassword,
 } from "@/lib/local-users"
 
@@ -44,5 +45,23 @@ describe("local users", () => {
     ).toMatchObject({ username: "eshayat" })
     expect(verifyLocalUserPassword("eshayat", "correct horse battery staple"))
       .not.toHaveProperty("passwordHash")
+  })
+
+  it("updates and persists a user profile picture URL", () => {
+    createLocalUser({ password: "correct horse battery staple", username: "eshayat" })
+
+    const updated = updateLocalUserProfile("eshayat", {
+      avatarUrl: "/api/users/eshayat/avatar?v=123",
+    })
+
+    expect(updated).toMatchObject({
+      avatarUrl: "/api/users/eshayat/avatar?v=123",
+      username: "eshayat",
+    })
+    expect(getLocalUserByUsername("eshayat")).toMatchObject({
+      avatarUrl: "/api/users/eshayat/avatar?v=123",
+    })
+    expect(verifyLocalUserPassword("eshayat", "correct horse battery staple"))
+      .toMatchObject({ avatarUrl: "/api/users/eshayat/avatar?v=123" })
   })
 })

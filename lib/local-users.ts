@@ -5,6 +5,7 @@ import { join } from "node:path"
 import { getDataDir, validateUsername, normalizeOwner } from "@/lib/local-git"
 
 export type LocalUserRecord = {
+  avatarUrl?: string | null
   createdAt: string
   displayName: string | null
   email: string | null
@@ -33,6 +34,7 @@ function writeUserRecords(users: LocalUserRecord[]) {
 
 function publicUser(user: LocalUserRecord): LocalUser {
   return {
+    avatarUrl: user.avatarUrl ?? null,
     createdAt: user.createdAt,
     displayName: user.displayName,
     email: user.email,
@@ -102,11 +104,39 @@ export function verifyLocalUserPassword(username: string, password: string) {
   return publicUser(user)
 }
 
+export function updateLocalUserProfile(
+  username: string,
+  input: {
+    avatarUrl?: string | null
+    displayName?: string | null
+    email?: string | null
+  }
+) {
+  const normalized = normalizeOwner(username)
+  const users = readUserRecords()
+  const index = users.findIndex((item) => item.username === normalized)
+  if (index === -1) return null
+
+  const existing = users[index]
+  const updated: LocalUserRecord = {
+    ...existing,
+    avatarUrl: input.avatarUrl !== undefined ? input.avatarUrl : existing.avatarUrl,
+    displayName:
+      input.displayName !== undefined
+        ? input.displayName || normalized
+        : existing.displayName,
+    email: input.email !== undefined ? input.email : existing.email,
+  }
+  users[index] = updated
+  writeUserRecords(users)
+  return publicUser(updated)
+}
+
 export function toSessionUser(user: LocalUser) {
   return {
     accessToken: `local:${user.username}`,
     email: user.email,
-    image: null,
+    image: user.avatarUrl ?? null,
     login: user.username,
     name: user.displayName,
   }
