@@ -1,4 +1,4 @@
-Xenon is Raycast for GitHub in the web: fast navigation, rich repo browsing, and keyboard-driven workflows.
+# Xenon is Raycast for GitHub in the web: fast navigation, rich repo browsing, and keyboard-driven workflows.
 
 Features
 
