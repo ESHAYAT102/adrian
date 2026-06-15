@@ -95,6 +95,7 @@ export type GitHubRepositoryFileDeleteInput = {
 
 export type GitHubRepository = {
   archived: boolean
+  clone_url: string
   created_at: string
   default_branch?: string
   description: string | null
@@ -182,7 +183,7 @@ function hashId(value: string) {
 }
 
 function siteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:8390"
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:8390").replace(/\/$/, "")
 }
 
 function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], viewer?: SessionUser | null): GitHubRepository {
@@ -192,6 +193,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
   const canPush = viewer?.login === repo.owner
   return {
     archived: repo.archived ?? false,
+    clone_url: `${siteUrl()}/${fullName}.git`,
     created_at: repo.createdAt,
     default_branch: repo.defaultBranch,
     description: repo.description,

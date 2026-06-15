@@ -516,6 +516,7 @@ export default async function RepositoryPage({
                 />
                 <RepositoryActions
                   branch={contentRef}
+                  cloneUrl={repository.clone_url}
                   fullName={
                     repository.full_name ??
                     `${repository.owner.login}/${repository.name}`
@@ -563,7 +564,7 @@ export default async function RepositoryPage({
                   </Card>
                 ) : isOwnedEmptyRepository ? (
                   <EmptyRepositoryInstructions
-                    remoteUrl={repository.html_url}
+                    remoteUrl={repository.clone_url}
                   />
                 ) : (
                   <div className="min-w-0 space-y-4 lg:space-y-0">

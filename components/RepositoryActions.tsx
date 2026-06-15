@@ -16,12 +16,14 @@ import { cn } from "@/lib/utils"
 
 type RepositoryActionsProps = {
   branch: string
+  cloneUrl: string
   fullName: string
   htmlUrl: string
 }
 
 export default function RepositoryActions({
   branch,
+  cloneUrl: repositoryCloneUrl,
   fullName,
   htmlUrl,
 }: RepositoryActionsProps) {
@@ -36,8 +38,8 @@ export default function RepositoryActions({
       return `gh repo clone ${fullName}`
     }
 
-    return `git clone ${htmlUrl}.git`
-  }, [fullName, htmlUrl, protocol])
+    return `git clone ${repositoryCloneUrl}`
+  }, [fullName, protocol, repositoryCloneUrl])
 
   const zipUrl = `${htmlUrl}/archive/refs/heads/${branch}.zip`
   const desktopUrl = `x-github-client://openRepo/${htmlUrl}`
@@ -56,7 +58,7 @@ export default function RepositoryActions({
 
   const copyRepoUrl = async () => {
     try {
-      await navigator.clipboard.writeText(`${htmlUrl}.git`)
+      await navigator.clipboard.writeText(repositoryCloneUrl)
       toast.success("Git URL copied")
     } catch {
       toast.error("Could not copy Git URL")

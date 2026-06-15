@@ -11,17 +11,21 @@ type EmptyRepositoryInstructionsProps = {
   remoteUrl: string
 }
 
+export function buildEmptyRepositoryCommands(remoteUrl: string) {
+  return `git init
+git add .
+git commit -m "initial commit"
+git branch -M main
+git remote add origin ${remoteUrl}
+git push -u origin main`
+}
+
 export default function EmptyRepositoryInstructions({
   remoteUrl,
 }: EmptyRepositoryInstructionsProps) {
   const [copied, setCopied] = useState(false)
 
-  const commands = `git init
-git add .
-git commit -m "inital commit"
-git branch -M main
-git remote add origin ${remoteUrl}.git
-git push -u origin main`
+  const commands = buildEmptyRepositoryCommands(remoteUrl)
 
   const handleCopy = async () => {
     try {

@@ -105,6 +105,7 @@ export default function ProfileRepositories({
         const data = (await response.json()) as {
           repositories: Array<{
             archived: boolean
+            clone_url: string
             created_at: string
             id: number
             forks_count: number
@@ -125,6 +126,7 @@ export default function ProfileRepositories({
 
         const mapped = data.repositories.map((repo) => ({
           archived: repo.archived,
+          clone_url: repo.clone_url,
           created_at: repo.created_at,
           description: repo.description,
           fork: repo.fork,
