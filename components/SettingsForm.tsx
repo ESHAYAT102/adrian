@@ -2,11 +2,9 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, RefreshCw, Save, Upload } from "lucide-react"
+import { Loader2, Save, Trash2, Upload } from "lucide-react"
 import { toast } from "sonner"
 
-import A from "@/components/A"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -30,31 +28,20 @@ type SettingsFormProps = {
   settings: GitHubViewerSettings
 }
 
-function scopeLabel(scope: string) {
-  switch (scope) {
-    case "user":
-      return "Profile editing"
-    case "repo":
-      return "Repositories"
-    case "notifications":
-      return "Notifications"
-    default:
-      return scope
-  }
-}
-
 export default function SettingsForm({ settings }: SettingsFormProps) {
   const router = useRouter()
   const [formState, setFormState] = useState({
     bio: settings.bio ?? "",
     blog: settings.blog ?? "",
     company: settings.company ?? "",
+    email: settings.email ?? "",
     hireable: settings.hireable ?? false,
     location: settings.location ?? "",
     name: settings.name ?? "",
     twitterUsername: settings.twitterUsername ?? "",
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(settings.avatarUrl)
@@ -122,6 +109,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         bio: formState.bio || null,
         blog: formState.blog || null,
         company: formState.company || null,
+        email: formState.email || null,
         hireable: formState.hireable,
         location: formState.location || null,
         name: formState.name || null,
@@ -156,6 +144,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         bio: data.settings.bio ?? "",
         blog: data.settings.blog ?? "",
         company: data.settings.company ?? "",
+        email: data.settings.email ?? "",
         hireable: data.settings.hireable ?? false,
         location: data.settings.location ?? "",
         name: data.settings.name ?? "",
@@ -166,59 +155,38 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     setNotice("Settings saved to Adrian.")
   }
 
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Delete your Adrian account? This signs you out and removes your local account login."
+    )
+    if (!confirmed) return
+
+    setIsDeletingAccount(true)
+    setError(null)
+    setNotice(null)
+
+    try {
+      const response = await fetch("/api/settings/account", { method: "DELETE" })
+      if (!response.ok) {
+        const message = "Could not delete account. Please try again."
+        setError(message)
+        toast.error(message)
+        return
+      }
+      toast.success("Account deleted")
+      router.replace("/")
+      router.refresh()
+    } catch {
+      const message = "Could not delete account. Please try again."
+      setError(message)
+      toast.error(message)
+    } finally {
+      setIsDeletingAccount(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <Card className="rounded-3xl">
-        <CardHeader>
-          <CardTitle>OAuth Access</CardTitle>
-          <CardDescription>
-            This is what your local Adrian account can access right now.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-2">
-            {settings.scopes.length > 0 ? (
-              settings.scopes.map((scope) => (
-                <Badge key={scope} variant="outline" className="rounded-full">
-                  {scopeLabel(scope)}
-                </Badge>
-              ))
-            ) : (
-              <Badge variant="outline" className="rounded-full">
-                No scopes detected
-              </Badge>
-            )}
-          </div>
-          <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
-            <div>
-              Profile editing:{" "}
-              <span className="text-foreground">
-                {settings.canEditProfile ? "Allowed" : "Not granted"}
-              </span>
-            </div>
-            <div>
-              Notifications:{" "}
-              <span className="text-foreground">
-                {settings.canReadNotifications ? "Allowed" : "Not granted"}
-              </span>
-            </div>
-          </div>
-          {!settings.canEditProfile ? (
-            <div className="rounded-2xl border border-border bg-muted/30 p-4 text-sm text-muted-foreground">
-              Editing profile settings requires a local Adrian account.
-              <div className="mt-3">
-                <Button asChild variant="outline" className="rounded-xl">
-                  <A href="/settings">
-                    <RefreshCw />
-                    Login to Adrian
-                  </A>
-                </Button>
-              </div>
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
-
       <Card className="rounded-3xl">
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>
@@ -373,14 +341,21 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
             </Field>
 
             <Field>
-              <FieldLabel>Connected Email</FieldLabel>
+              <FieldLabel>Email</FieldLabel>
               <FieldContent>
                 <Input
-                  readOnly
-                  value={settings.email ?? "No public email available"}
+                  disabled={!canEdit}
+                  type="email"
+                  value={formState.email}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      email: event.target.value,
+                    }))
+                  }
                 />
                 <FieldDescription>
-                  Email editing is not managed from this screen yet.
+                  Used for your local Adrian account and session profile.
                 </FieldDescription>
               </FieldContent>
             </Field>
@@ -399,6 +374,27 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
               Save changes
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-3xl border-destructive/40">
+        <CardHeader>
+          <CardTitle className="text-destructive">Delete account</CardTitle>
+          <CardDescription>
+            Permanently remove your local Adrian account login and sign out of this browser.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            className="rounded-xl"
+            disabled={isDeletingAccount}
+            onClick={handleDeleteAccount}
+            type="button"
+            variant="destructive"
+          >
+            {isDeletingAccount ? <Loader2 className="animate-spin" /> : <Trash2 />}
+            Delete account
+          </Button>
         </CardContent>
       </Card>
     </div>

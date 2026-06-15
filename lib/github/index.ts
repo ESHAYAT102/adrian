@@ -56,6 +56,7 @@ export type GitHubViewerSettingsUpdateInput = {
   bio?: string | null
   blog?: string | null
   company?: string | null
+  email?: string | null
   hireable?: boolean | null
   location?: string | null
   name?: string | null
@@ -268,7 +269,7 @@ export async function getGitHubViewerSettings(user: SessionUser | null): Promise
 
 export async function updateGitHubViewerSettings(user: SessionUser | null, input: GitHubViewerSettingsUpdateInput): Promise<SettingsResult> {
   if (!user) return { error: "unauthorized", settings: await getGitHubViewerSettings(null), status: 401 }
-  updateLocalUserProfile(user.login, { displayName: input.name })
+  updateLocalUserProfile(user.login, { displayName: input.name, email: input.email ?? null })
   return { settings: await getGitHubViewerSettings(user) }
 }
 

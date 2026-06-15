@@ -32,6 +32,7 @@ export async function PATCH(request: Request) {
     bio?: string | null
     blog?: string | null
     company?: string | null
+    email?: string | null
     hireable?: boolean | null
     location?: string | null
     name?: string | null
@@ -42,6 +43,7 @@ export async function PATCH(request: Request) {
     bio: body.bio ?? null,
     blog: body.blog ?? null,
     company: body.company ?? null,
+    email: body.email ?? null,
     hireable: body.hireable ?? null,
     location: body.location ?? null,
     name: body.name ?? null,

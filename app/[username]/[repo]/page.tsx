@@ -323,19 +323,17 @@ export default async function RepositoryPage({
   let pullRequestCount = 0
   let repositoryLanguages: Record<string, number> = {}
 
-  if (!isAuthenticated || currentTab === "code" || currentTab === "commits") {
-    const [commitsResult, countResult] = await Promise.all([
-      getGitHubRepositoryCommits(username, repo, sessionUser, resolvedBranch),
-      getGitHubRepositoryCommitCount(
-        username,
-        repo,
-        sessionUser,
-        resolvedBranch
-      ),
-    ])
-    commits = commitsResult
-    commitCount = countResult
-  }
+  const [commitsResult, countResult] = await Promise.all([
+    getGitHubRepositoryCommits(username, repo, sessionUser, resolvedBranch),
+    getGitHubRepositoryCommitCount(
+      username,
+      repo,
+      sessionUser,
+      resolvedBranch
+    ),
+  ])
+  commits = commitsResult
+  commitCount = countResult
 
   if (!isAuthenticated || currentTab === "issues") {
     const [issuesResult, countResult] = await Promise.all([

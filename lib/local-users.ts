@@ -132,6 +132,15 @@ export function updateLocalUserProfile(
   return publicUser(updated)
 }
 
+export function deleteLocalUser(username: string) {
+  const normalized = normalizeOwner(username)
+  const users = readUserRecords()
+  const nextUsers = users.filter((item) => item.username !== normalized)
+  if (nextUsers.length === users.length) return false
+  writeUserRecords(nextUsers)
+  return true
+}
+
 export function toSessionUser(user: LocalUser) {
   return {
     accessToken: `local:${user.username}`,
