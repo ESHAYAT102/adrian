@@ -1,5 +1,6 @@
 import BrowserContextMenu from "@/components/BrowserContextMenu"
 import Navbar from "@/components/Navbar"
+import AdminDashboard from "@/components/AdminDashboard"
 import AdminUsersPanel from "@/components/AdminUsersPanel"
 import {
   getGitHubActivity,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/github"
 import { listLocalRepositories } from "@/lib/local-git"
 import { listLocalUsers } from "@/lib/local-users"
+import { buildAdminDashboardStats } from "@/lib/admin-dashboard"
 import { getSessionUser, isAdminSessionUser } from "@/lib/session"
 
 import HomeActivity from "@/components/HomeActivity"
@@ -32,6 +34,7 @@ export default async function Page({ searchParams }: HomePageProps) {
     : [null, await getTrendingRepositories(user), []]
   const adminUsers = isAdmin ? listLocalUsers() : []
   const adminRepositories = isAdmin ? listLocalRepositories() : []
+  const adminStats = isAdmin ? buildAdminDashboardStats() : null
 
   return (
     <BrowserContextMenu triggerClassName="block min-h-screen w-full">
@@ -41,7 +44,10 @@ export default async function Page({ searchParams }: HomePageProps) {
           {user ? (
             <>
               {isAdmin ? (
-                <AdminUsersPanel users={adminUsers} repositories={adminRepositories} />
+                <div className="space-y-8">
+                  {adminStats ? <AdminDashboard stats={adminStats} /> : null}
+                  <AdminUsersPanel users={adminUsers} repositories={adminRepositories} />
+                </div>
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-2">

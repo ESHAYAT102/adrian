@@ -11,8 +11,10 @@ import {
   getRepositoryContents,
   getRepositoryFileText,
   getRepositoryLanguages,
+  createLocalRepositoryRelease,
   getRepositoryReadme,
   isLocalRepositoryStarredByUser,
+  listRepositoryReleases,
   listLocalRepositories,
   starLocalRepositoryForUser,
   unstarLocalRepositoryForUser,
@@ -172,7 +174,9 @@ export type GitHubRepositoryCommitDiff = { files: GitHubRepositoryCommitDiffFile
 export type GitHubRepositoryIssue = { comments: number; html_url: string; number: number; pull_request?: unknown; state: string; title: string; updated_at: string; user: { login: string } | null }
 export type GitHubRepositoryPullRequest = { comments: number; html_url: string; number: number; state: string; title: string; updated_at: string; user: { login: string } | null }
 export type GitHubRepositoryDiscussion = { comments: number; html_url: string; number: number; title: string; updated_at: string; user: { login: string } | null }
-export type GitHubRepositoryRelease = { body: string | null; draft: boolean; html_url: string; name: string | null; prerelease: boolean; published_at: string | null; tag_name: string }
+export type GitHubRepositoryReleaseAsset = { browser_download_url: string; content_type: string; name: string; size: number }
+export type GitHubRepositoryRelease = { assets: GitHubRepositoryReleaseAsset[]; body: string | null; draft: boolean; html_url: string; name: string | null; prerelease: boolean; published_at: string | null; tag_name: string }
+export type GitHubRepositoryReleaseCreateInput = { assets?: Array<{ content: Buffer | string; name: string; type?: string }>; body?: string | null; name?: string | null; tagName: string }
 export type GitHubNotification = { id: string; reason: string; repositoryFullName: string; repositoryUrl: string; subjectTitle: string; subjectType: string; unread: boolean; updatedAt: string; url: string }
 export type ProfileActivityItem = { category: "Commits" | "Discussions" | "Issues" | "Pull Requests" | "Repositories Created" | "Stars"; createdAt: string; id: string; repoName: string; title: string; url: string; status?: "open" | "closed" | "merged"; internalUrl?: string }
 
@@ -180,6 +184,7 @@ type SettingsResult = { settings: GitHubViewerSettings; error?: string; status?:
 type RepositoryResult = { repository: GitHubRepository | null; error?: string; status?: number }
 type DeleteResult = { ok: boolean; error?: string; status: number }
 type FileUpdateResult = { commit: { sha: string }; content?: GitHubRepositoryContent[]; error?: string; status?: number }
+type ReleaseResult = { release: GitHubRepositoryRelease | null; error?: string; status?: number }
 
 function hashId(value: string) {
   let hash = 0
@@ -427,7 +432,50 @@ export async function getGitHubRepositoryIssues(_owner?: string, _repo?: string,
 export async function getGitHubRepositoryIssueCount(_owner?: string, _repo?: string, _user?: SessionUser | null) { return 0 }
 export async function getGitHubRepositoryPullRequests(_owner?: string, _repo?: string, _user?: SessionUser | null): Promise<GitHubRepositoryPullRequest[]> { return [] }
 export async function getGitHubRepositoryPullRequestCount(_owner?: string, _repo?: string, _user?: SessionUser | null) { return 0 }
-export async function getGitHubRepositoryReleases(_owner?: string, _repo?: string, _user?: SessionUser | null): Promise<GitHubRepositoryRelease[]> { return [] }
+function toRelease(release: ReturnType<typeof listRepositoryReleases>[number]): GitHubRepositoryRelease {
+  return {
+    assets: release.assets.map((asset) => ({
+      browser_download_url: asset.downloadUrl,
+      content_type: asset.contentType,
+      name: asset.name,
+      size: asset.size,
+    })),
+    body: release.body,
+    draft: false,
+    html_url: `/${release.owner}/${release.repo}/releases/tag/${encodeURIComponent(release.tagName)}`,
+    name: release.name,
+    prerelease: false,
+    published_at: release.createdAt,
+    tag_name: release.tagName,
+  }
+}
+
+export async function getGitHubRepositoryReleases(owner?: string, repo?: string, _user?: SessionUser | null): Promise<GitHubRepositoryRelease[]> {
+  if (!owner || !repo) return []
+  return listRepositoryReleases(owner, repo).map(toRelease)
+}
+
+export async function createGitHubRepositoryRelease(
+  user: SessionUser,
+  owner: string,
+  repo: string,
+  input: GitHubRepositoryReleaseCreateInput
+): Promise<ReleaseResult> {
+  if (!canManageLocalRepository(user, owner)) return { error: "forbidden", release: null, status: 403 }
+  const release = createLocalRepositoryRelease({
+    assets: input.assets?.map((asset) => ({
+      content: asset.content,
+      contentType: asset.type,
+      name: asset.name,
+    })) ?? [],
+    body: input.body ?? null,
+    name: input.name ?? input.tagName,
+    owner,
+    repo,
+    tagName: input.tagName,
+  })
+  return { release: toRelease(release), status: 201 }
+}
 export async function getGitHubRepositoryDiscussions(_owner?: string, _repo?: string, _user?: SessionUser | null): Promise<GitHubRepositoryDiscussion[]> { return [] }
 export async function getGitHubRepositoryDiscussionCount(_owner?: string, _repo?: string, _user?: SessionUser | null) { return 0 }
 export async function getGitHubNotifications(_user?: SessionUser | null, _options?: { unreadOnly?: boolean }): Promise<GitHubNotification[]> { return [] }

@@ -26,6 +26,7 @@ import RepositoryCommits from "@/components/RepositoryCommits"
 import RepositoryFileTree from "@/components/RepositoryFileTree"
 import RepositoryFilePreview from "@/components/RepositoryFilePreview"
 import RepoKeyboardShortcuts from "@/components/RepoKeyboardShortcuts"
+import RepositoryReleaseForm from "@/components/RepositoryReleaseForm"
 import RepositorySettingsForm from "@/components/RepositorySettingsForm"
 import RepositoryTabs from "@/components/RepositoryTabs"
 import { Badge } from "@/components/ui/badge"
@@ -826,15 +827,15 @@ export default async function RepositoryPage({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
+                    {canManageRepository ? (
+                      <RepositoryReleaseForm owner={username} repo={repo} />
+                    ) : null}
                     {releases.length > 0 ? (
                       <div className="divide-y divide-border">
                         {releases.map((release) => (
-                          <A
+                          <div
                             key={release.tag_name}
-                            href={release.html_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="block px-5 py-4 transition hover:bg-accent/20"
+                            className="px-5 py-4"
                           >
                             <div className="flex items-start justify-between gap-4">
                               <div className="min-w-0">
@@ -859,6 +860,19 @@ export default async function RepositoryPage({
                                     {release.body}
                                   </p>
                                 ) : null}
+                                {release.assets.length > 0 ? (
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {release.assets.map((asset) => (
+                                      <A
+                                        key={asset.name}
+                                        href={asset.browser_download_url}
+                                        className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                                      >
+                                        {asset.name}
+                                      </A>
+                                    ))}
+                                  </div>
+                                ) : null}
                               </div>
                               <div className="shrink-0 text-xs text-muted-foreground">
                                 {release.published_at
@@ -866,7 +880,7 @@ export default async function RepositoryPage({
                                   : "Unpublished"}
                               </div>
                             </div>
-                          </A>
+                          </div>
                         ))}
                       </div>
                     ) : (

@@ -41,6 +41,23 @@ export type LocalRepositoryContent = {
   type: "dir" | "file"
 }
 
+export type LocalReleaseAsset = {
+  contentType: string
+  downloadUrl: string
+  name: string
+  size: number
+}
+
+export type LocalRepositoryRelease = {
+  assets: LocalReleaseAsset[]
+  body: string | null
+  createdAt: string
+  name: string | null
+  owner: string
+  repo: string
+  tagName: string
+}
+
 const DEFAULT_BRANCH = "main"
 const GIT_AUTHOR = "Adrian"
 const GIT_EMAIL = "adrian@selfhost.local"
@@ -86,6 +103,18 @@ function getWorktreesDir() {
 
 function getDbPath() {
   return join(getDataDir(), "repositories.json")
+}
+
+function getReleasesDir() {
+  return join(getDataDir(), "releases")
+}
+
+function getRepositoryReleaseDir(owner: string, name: string) {
+  return join(getReleasesDir(), normalizeOwner(owner), normalizeRepositoryName(name))
+}
+
+function getRepositoryReleasesPath(owner: string, name: string) {
+  return join(getRepositoryReleaseDir(owner, name), "releases.json")
 }
 
 export function ensureLocalGitStorage() {
@@ -456,6 +485,89 @@ export function getRepositoryLanguages(owner: string, name: string) {
     languages[language] = (languages[language] ?? 0) + size
   }
   return languages
+}
+
+function readRepositoryReleases(owner: string, name: string): LocalRepositoryRelease[] {
+  const path = getRepositoryReleasesPath(owner, name)
+  if (!existsSync(path)) return []
+  return JSON.parse(readFileSync(path, "utf8")) as LocalRepositoryRelease[]
+}
+
+function writeRepositoryReleases(owner: string, name: string, releases: LocalRepositoryRelease[]) {
+  const dir = getRepositoryReleaseDir(owner, name)
+  mkdirSync(dir, { recursive: true })
+  writeFileSync(getRepositoryReleasesPath(owner, name), `${JSON.stringify(releases, null, 2)}\n`)
+}
+
+export function listRepositoryReleases(owner: string, name: string) {
+  return readRepositoryReleases(owner, name).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function createLocalRepositoryRelease({
+  assets = [],
+  body = null,
+  name = null,
+  owner,
+  repo,
+  tagName,
+}: {
+  assets?: Array<{ content: Buffer | string; contentType?: string; name: string }>
+  body?: string | null
+  name?: string | null
+  owner: string
+  repo: string
+  tagName: string
+}) {
+  const repository = getLocalRepository(owner, repo)
+  if (!repository) throw new Error("Repository not found")
+  const normalizedTag = tagName.trim()
+  if (!normalizedTag) throw new Error("Tag is required")
+
+  const releaseDir = getRepositoryReleaseDir(owner, repo)
+  const assetDir = join(releaseDir, "assets", normalizedTag.replace(/[^A-Za-z0-9._-]/g, "-"))
+  mkdirSync(assetDir, { recursive: true })
+
+  const now = new Date().toISOString()
+  const releaseAssets: LocalReleaseAsset[] = assets.map((asset) => {
+    const safeName = basename(asset.name).replace(/[/\\]/g, "-")
+    const content = Buffer.isBuffer(asset.content) ? asset.content : Buffer.from(asset.content)
+    writeFileSync(join(assetDir, safeName), content)
+    return {
+      contentType: asset.contentType || "application/octet-stream",
+      downloadUrl: `/api/repository-releases/assets?owner=${encodeURIComponent(normalizeOwner(owner))}&repo=${encodeURIComponent(normalizeRepositoryName(repo))}&tag=${encodeURIComponent(normalizedTag)}&name=${encodeURIComponent(safeName)}`,
+      name: safeName,
+      size: content.length,
+    }
+  })
+
+  const release: LocalRepositoryRelease = {
+    assets: releaseAssets,
+    body,
+    createdAt: now,
+    name,
+    owner: normalizeOwner(owner),
+    repo: normalizeRepositoryName(repo),
+    tagName: normalizedTag,
+  }
+
+  const next = [release, ...readRepositoryReleases(owner, repo).filter((item) => item.tagName !== normalizedTag)]
+  writeRepositoryReleases(owner, repo, next)
+  return release
+}
+
+export function readLocalReleaseAsset(owner: string, repo: string, tagName: string, assetName: string) {
+  const release = readRepositoryReleases(owner, repo).find((item) => item.tagName === tagName)
+  const safeName = basename(assetName).replace(/[/\\]/g, "-")
+  const asset = release?.assets.find((item) => item.name === safeName)
+  if (!release || !asset) return null
+  const assetPath = join(
+    getRepositoryReleaseDir(owner, repo),
+    "assets",
+    tagName.replace(/[^A-Za-z0-9._-]/g, "-"),
+    safeName
+  )
+  if (!existsSync(assetPath)) return null
+  return { ...asset, content: readFileSync(assetPath) }
 }
 
 export function removeAllLocalRepositoriesForTests() {
