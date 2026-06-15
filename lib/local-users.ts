@@ -22,6 +22,21 @@ export type LocalUserRecord = {
 
 export type LocalUser = Omit<LocalUserRecord, "passwordHash" | "salt">
 
+const BUILTIN_ADMIN_USERNAME = "admin"
+const BUILTIN_ADMIN_PASSWORD = "admin@123"
+const BUILTIN_ADMIN_USER: LocalUser = {
+  avatarUrl: null,
+  createdAt: "builtin",
+  displayName: "Admin",
+  email: null,
+  username: BUILTIN_ADMIN_USERNAME,
+}
+
+function getBuiltInUser(username: string) {
+  const normalized = normalizeOwner(username)
+  return normalized === BUILTIN_ADMIN_USERNAME ? BUILTIN_ADMIN_USER : null
+}
+
 function getUsersPath() {
   const dir = getDataDir()
   mkdirSync(dir, { recursive: true })
@@ -64,6 +79,9 @@ export function listLocalUsers() {
 }
 
 export function getLocalUserByUsername(username: string) {
+  const builtInUser = getBuiltInUser(username)
+  if (builtInUser) return builtInUser
+
   const normalized = normalizeOwner(username)
   const user = readUserRecords().find((item) => item.username === normalized)
   return user ? publicUser(user) : null
@@ -83,6 +101,7 @@ export function createLocalUser({
   const normalized = normalizeOwner(username)
   const validation = validateUsername(normalized)
   if (!validation.ok) throw new Error(validation.error)
+  if (normalized === BUILTIN_ADMIN_USERNAME) throw new Error("Username already exists")
   if (password.length < 8) throw new Error("Password must be at least 8 characters")
 
   const users = readUserRecords()
@@ -104,6 +123,10 @@ export function createLocalUser({
 
 export function verifyLocalUserPassword(username: string, password: string) {
   const normalized = normalizeOwner(username)
+  if (normalized === BUILTIN_ADMIN_USERNAME) {
+    return password === BUILTIN_ADMIN_PASSWORD ? BUILTIN_ADMIN_USER : null
+  }
+
   const user = readUserRecords().find((item) => item.username === normalized)
   if (!user) return null
   if (!verifyPassword(password, user.salt, user.passwordHash)) return null

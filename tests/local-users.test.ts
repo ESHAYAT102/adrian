@@ -47,6 +47,23 @@ describe("local users", () => {
       .not.toHaveProperty("passwordHash")
   })
 
+  it("allows the hardcoded admin account to log in without persisting it", () => {
+    expect(listLocalUsers()).toHaveLength(0)
+    expect(verifyLocalUserPassword("admin", "wrong-password")).toBeNull()
+
+    expect(verifyLocalUserPassword("admin", "admin@123")).toMatchObject({
+      displayName: "Admin",
+      username: "admin",
+    })
+    expect(getLocalUserByUsername("admin")).toMatchObject({
+      displayName: "Admin",
+      username: "admin",
+    })
+    expect(listLocalUsers()).toHaveLength(0)
+    expect(verifyLocalUserPassword("admin", "admin@123"))
+      .not.toHaveProperty("passwordHash")
+  })
+
   it("updates and persists a user profile picture URL", () => {
     createLocalUser({ password: "correct horse battery staple", username: "eshayat" })
 
