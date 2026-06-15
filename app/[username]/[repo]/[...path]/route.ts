@@ -3,6 +3,7 @@ import { existsSync, readFileSync, statSync } from "node:fs"
 import { dirname, join, normalize } from "node:path"
 import { NextResponse } from "next/server"
 
+import { verifyLocalUserPassword } from "@/lib/local-users"
 import { getLocalRepository, syncLocalRepositoryWorkTree } from "@/lib/local-git"
 
 export const runtime = "nodejs"
@@ -35,6 +36,39 @@ function parseRoute(params: { path: string[]; repo: string; username: string }) 
   if (relativePath.startsWith("..") || relativePath.includes("/.")) return null
 
   return { relativePath, repository, repositoryName, repo, username }
+}
+
+export function basicAuthChallenge() {
+  return new NextResponse("Authentication required", {
+    headers: {
+      "WWW-Authenticate": 'Basic realm="Adrian Git", charset="UTF-8"',
+    },
+    status: 401,
+  })
+}
+
+function parseBasicAuth(request: Request) {
+  const header = request.headers.get("authorization")
+  if (!header?.startsWith("Basic ")) return null
+
+  try {
+    const decoded = Buffer.from(header.slice("Basic ".length), "base64").toString("utf8")
+    const separator = decoded.indexOf(":")
+    if (separator === -1) return null
+    return {
+      password: decoded.slice(separator + 1),
+      username: decoded.slice(0, separator),
+    }
+  } catch {
+    return null
+  }
+}
+
+export function authenticateGitRequest(request: Request, repositoryOwner: string) {
+  const credentials = parseBasicAuth(request)
+  if (!credentials) return null
+  if (credentials.username.toLowerCase() !== repositoryOwner.toLowerCase()) return null
+  return verifyLocalUserPassword(credentials.username, credentials.password)
 }
 
 function parseGitHttpResponse(output: Buffer) {
@@ -121,6 +155,12 @@ function isSmartRpcPath(relativePath: string) {
   return SMART_GIT_SERVICES.has(relativePath)
 }
 
+function isReceivePackRequest(request: Request, relativePath: string) {
+  if (relativePath === "git-receive-pack") return true
+  if (relativePath !== "info/refs") return false
+  return new URL(request.url).searchParams.get("service") === "git-receive-pack"
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ path: string[]; repo: string; username: string }> }
@@ -129,6 +169,10 @@ export async function GET(
   if (!parsed) return new NextResponse("Not found", { status: 404 })
 
   const { relativePath, repository, repo, username } = parsed
+
+  if (isReceivePackRequest(request, relativePath) && !authenticateGitRequest(request, username)) {
+    return basicAuthChallenge()
+  }
 
   if (isSmartInfoRefsRequest(request, relativePath)) {
     const result = runGitHttpBackend({
@@ -164,6 +208,9 @@ export async function POST(
 
   const { relativePath, repo, repository, repositoryName, username } = parsed
   if (!isSmartRpcPath(relativePath)) return new NextResponse("Not found", { status: 404 })
+  if (isReceivePackRequest(request, relativePath) && !authenticateGitRequest(request, username)) {
+    return basicAuthChallenge()
+  }
 
   const body = Buffer.from(await request.arrayBuffer())
   const result = runGitHttpBackend({

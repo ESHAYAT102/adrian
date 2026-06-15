@@ -8,6 +8,7 @@ import {
   Document,
   Eslint,
   Git,
+  Go,
   Image as ImageFile,
   Js,
   License,
@@ -227,6 +228,10 @@ export function getRepositoryItemIcon(
 
   if (name.endsWith(".py")) {
     return <Python className="size-4 text-muted-foreground" />
+  }
+
+  if (name.endsWith(".go")) {
+    return <Go aria-label="Go file" className="size-4 text-muted-foreground" />
   }
 
   if (/\.(txt|ini|toml|xml)$/.test(name)) {
