@@ -3,6 +3,13 @@
 import { useState } from "react"
 import { GitCommitHorizontal, GitFork, Timer, UserPlus } from "lucide-react"
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import type {
   AdminDashboardFilterId,
   AdminDashboardStats,
@@ -59,20 +66,27 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
             Track commits, users, and repository growth across Adrian.
           </p>
         </div>
-        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-          Dashboard date range
-          <select
+        <div className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+          <span>Dashboard date range</span>
+          <Select
             value={activeFilter}
-            onChange={(event) => setActiveFilter(event.target.value as AdminDashboardFilterId)}
-            className="h-10 rounded-xl border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
+            onValueChange={(value) => setActiveFilter(value as AdminDashboardFilterId)}
           >
-            {stats.filters.map((filter) => (
-              <option key={filter.id} value={filter.id}>
-                {filter.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger
+              aria-label="Dashboard date range"
+              className="h-10 min-w-48 rounded-xl border-border bg-background text-foreground"
+            >
+              <SelectValue placeholder="Choose range" />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {stats.filters.map((filter) => (
+                <SelectItem key={filter.id} value={filter.id}>
+                  {filter.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
