@@ -7,9 +7,9 @@ import {
 } from "@/lib/repository-display"
 
 describe("repository display helpers", () => {
-  it("builds issue and pull request creation URLs", () => {
-    expect(buildRepositoryIssueUrl("/eshayat/test")).toBe("/eshayat/test/issues/new")
-    expect(buildRepositoryPullRequestUrl("/eshayat/test")).toBe("/eshayat/test/compare")
+  it("builds internal issue and pull request tab URLs instead of dead file-path routes", () => {
+    expect(buildRepositoryIssueUrl("/eshayat/test")).toBe("/eshayat/test?tab=issues")
+    expect(buildRepositoryPullRequestUrl("/eshayat/test")).toBe("/eshayat/test?tab=pulls")
   })
 
   it("shows repository age beside the updated time", () => {

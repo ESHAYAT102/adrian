@@ -30,9 +30,9 @@ export function buildRepositoryCreationAgeLabel(value: string, now = new Date())
 }
 
 export function buildRepositoryIssueUrl(repositoryHtmlUrl: string) {
-  return `${repositoryHtmlUrl.replace(/\/$/, "")}/issues/new`
+  return `${repositoryHtmlUrl.replace(/\/$/, "")}?tab=issues`
 }
 
 export function buildRepositoryPullRequestUrl(repositoryHtmlUrl: string) {
-  return `${repositoryHtmlUrl.replace(/\/$/, "")}/compare`
+  return `${repositoryHtmlUrl.replace(/\/$/, "")}?tab=pulls`
 }
