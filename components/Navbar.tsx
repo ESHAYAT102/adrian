@@ -118,7 +118,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
                   Open in new tab
                 </ContextMenuItem>
               </A>
-              <A href="/">
+              <A href="https://github.com/ESHAYAT102/adrian/" target="_blank" rel="noreferrer">
                 <ContextMenuItem>
                   <BookMarked />
                   Open repository
