@@ -8,7 +8,10 @@ type AdminUsersPanelProps = {
   users: LocalUser[]
 }
 
-export default function AdminUsersPanel({ repositories, users }: AdminUsersPanelProps) {
+export default function AdminUsersPanel({
+  repositories,
+  users,
+}: AdminUsersPanelProps) {
   const repositoryCountByOwner = new Map<string, number>()
   for (const repository of repositories) {
     repositoryCountByOwner.set(
@@ -30,7 +33,8 @@ export default function AdminUsersPanel({ repositories, users }: AdminUsersPanel
         {users.length > 0 ? (
           <div className="divide-y divide-border">
             {users.map((user) => {
-              const repositoryCount = repositoryCountByOwner.get(user.username) ?? 0
+              const repositoryCount =
+                repositoryCountByOwner.get(user.username) ?? 0
               return (
                 <Link
                   key={user.username}
@@ -45,8 +49,9 @@ export default function AdminUsersPanel({ repositories, users }: AdminUsersPanel
                       @{user.username}
                     </p>
                   </div>
-                  <div className="shrink-0 rounded-full border border-border px-3 py-1 text-sm text-muted-foreground">
-                    {repositoryCount} {repositoryCount === 1 ? "repository" : "repositories"}
+                  <div className="shrink-0 px-3 py-1 text-sm text-muted-foreground">
+                    {repositoryCount}{" "}
+                    {repositoryCount === 1 ? "repository" : "repositories"}
                   </div>
                 </Link>
               )
