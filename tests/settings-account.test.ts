@@ -13,6 +13,7 @@ import {
   createLocalUser,
   deleteLocalUser,
   getLocalUserByUsername,
+  updateLocalUserPassword,
   verifyLocalUserPassword,
 } from "@/lib/local-users"
 import type { SessionUser } from "@/lib/session"
@@ -64,6 +65,21 @@ describe("settings account management", () => {
     expect(getLocalRepository("someone-else", "other-repo")).not.toBeNull()
   })
 
+  it("changes a local user password only when the current password matches", () => {
+    createLocalUser({ displayName: "Test Account", password: "password123", username: "test" })
+
+    expect(updateLocalUserPassword("test", "wrongpass", "newpassword123")).toMatchObject({
+      error: "invalid_credentials",
+    })
+    expect(verifyLocalUserPassword("test", "password123")).not.toBeNull()
+
+    expect(updateLocalUserPassword("test", "password123", "newpassword123")).toMatchObject({
+      ok: true,
+    })
+    expect(verifyLocalUserPassword("test", "password123")).toBeNull()
+    expect(verifyLocalUserPassword("test", "newpassword123")).not.toBeNull()
+  })
+
   it("removes OAuth/app/profile summary cards from the settings UI", () => {
     const settingsPage = readFileSync(join(process.cwd(), "app/settings/page.tsx"), "utf8")
     const settingsForm = readFileSync(join(process.cwd(), "components/SettingsForm.tsx"), "utf8")
@@ -98,10 +114,25 @@ describe("settings account management", () => {
     const settingsForm = readFileSync(join(process.cwd(), "components/SettingsForm.tsx"), "utf8")
 
     expect(settingsForm).not.toContain("window.confirm")
+    expect(settingsForm).toContain("Dialog")
+    expect(settingsForm).toContain("DialogContent")
+    expect(settingsForm).toContain("DialogFooter")
     expect(settingsForm).toContain("isDeleteDialogOpen")
     expect(settingsForm).toContain("deleteForm")
     expect(settingsForm).toContain("username: \"\"")
     expect(settingsForm).toContain("value={deleteForm.username}")
     expect(settingsForm).toContain("password: deleteForm.password")
+  })
+
+  it("renders a change password section and calls the password API", () => {
+    const settingsForm = readFileSync(join(process.cwd(), "components/SettingsForm.tsx"), "utf8")
+    const passwordRoute = readFileSync(join(process.cwd(), "app/api/settings/password/route.ts"), "utf8")
+
+    expect(settingsForm).toContain("Change password")
+    expect(settingsForm).toContain("currentPassword")
+    expect(settingsForm).toContain("newPassword")
+    expect(settingsForm).toContain("confirmPassword")
+    expect(settingsForm).toContain("/api/settings/password")
+    expect(passwordRoute).toContain("updateLocalUserPassword")
   })
 })

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, Save, Trash2, Upload } from "lucide-react"
 import { toast } from "sonner"
@@ -13,6 +13,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Field,
   FieldContent,
@@ -47,6 +55,14 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     password: "",
     username: "",
   })
+  const [passwordForm, setPasswordForm] = useState({
+    confirmPassword: "",
+    currentPassword: "",
+    newPassword: "",
+  })
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [passwordNotice, setPasswordNotice] = useState<string | null>(null)
+  const [passwordError, setPasswordError] = useState<string | null>(null)
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(settings.avatarUrl)
@@ -160,6 +176,52 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     setNotice("Settings saved to Adrian.")
   }
 
+  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setPasswordError(null)
+    setPasswordNotice(null)
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError("New passwords do not match.")
+      return
+    }
+
+    setIsChangingPassword(true)
+
+    try {
+      const response = await fetch("/api/settings/password", {
+        body: JSON.stringify({
+          currentPassword: passwordForm.currentPassword,
+          newPassword: passwordForm.newPassword,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      })
+      const data = (await response.json().catch(() => ({}))) as { error?: string }
+
+      if (!response.ok) {
+        setPasswordError(
+          data.error === "invalid_credentials"
+            ? "Current password is incorrect."
+            : data.error === "password_too_short"
+              ? "New password must be at least 8 characters."
+              : "Could not change password."
+        )
+        return
+      }
+
+      setPasswordForm({ confirmPassword: "", currentPassword: "", newPassword: "" })
+      setPasswordNotice("Password changed.")
+      toast.success("Password changed")
+    } catch {
+      setPasswordError("Could not change password.")
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
   const handleDeleteAccount = async () => {
     setIsDeletingAccount(true)
     setError(null)
@@ -189,6 +251,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         return
       }
       toast.success("Account deleted")
+      setIsDeleteDialogOpen(false)
       router.replace("/")
       router.refresh()
     } catch {
@@ -203,6 +266,15 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
   const canSubmitDeleteAccount =
     deleteForm.username.trim().toLowerCase() === settings.login.toLowerCase() &&
     deleteForm.password.length > 0
+
+  const handleDeleteSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!canSubmitDeleteAccount) {
+      toast.error("Type your username and password to delete your account")
+      return
+    }
+    void handleDeleteAccount()
+  }
 
   const openDeleteDialog = () => {
     setDeleteForm({ password: "", username: "" })
@@ -403,7 +475,91 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="rounded-3xl border-destructive/40">
+      <Card className="rounded-2xl">
+        <CardHeader className="px-5 py-4">
+          <CardTitle className="text-base">Change password</CardTitle>
+          <CardDescription>
+            Update the password for your local Adrian account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-5 pb-5">
+          <form className="space-y-4" onSubmit={handlePasswordSubmit}>
+            <FieldGroup>
+              <Field>
+                <FieldLabel>Current password</FieldLabel>
+                <FieldContent>
+                  <Input
+                    autoComplete="current-password"
+                    disabled={isChangingPassword}
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(event) =>
+                      setPasswordForm((current) => ({
+                        ...current,
+                        currentPassword: event.target.value,
+                      }))
+                    }
+                  />
+                </FieldContent>
+              </Field>
+
+              <Field orientation="responsive">
+                <FieldContent>
+                  <FieldLabel>New password</FieldLabel>
+                  <Input
+                    autoComplete="new-password"
+                    disabled={isChangingPassword}
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(event) =>
+                      setPasswordForm((current) => ({
+                        ...current,
+                        newPassword: event.target.value,
+                      }))
+                    }
+                  />
+                </FieldContent>
+                <FieldContent>
+                  <FieldLabel>Confirm password</FieldLabel>
+                  <Input
+                    autoComplete="new-password"
+                    disabled={isChangingPassword}
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(event) =>
+                      setPasswordForm((current) => ({
+                        ...current,
+                        confirmPassword: event.target.value,
+                      }))
+                    }
+                  />
+                </FieldContent>
+              </Field>
+            </FieldGroup>
+
+            {passwordError ? <p className="text-sm text-destructive">{passwordError}</p> : null}
+            {passwordNotice ? <p className="text-sm text-emerald-500">{passwordNotice}</p> : null}
+
+            <div className="flex justify-end">
+              <Button
+                className="rounded-xl"
+                disabled={
+                  isChangingPassword ||
+                  !passwordForm.currentPassword ||
+                  !passwordForm.newPassword ||
+                  !passwordForm.confirmPassword
+                }
+                type="submit"
+              >
+                {isChangingPassword ? <Loader2 className="animate-spin" /> : <Save />}
+                Change password
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <Card className="rounded-2xl border-destructive/30">
         <CardHeader>
           <CardTitle className="text-destructive">Delete account</CardTitle>
           <CardDescription>
@@ -415,10 +571,6 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
             className="rounded-xl"
             disabled={isDeletingAccount}
             onClick={openDeleteDialog}
-            onPointerDown={(event) => {
-              event.preventDefault()
-              openDeleteDialog()
-            }}
             type="button"
             variant="destructive"
           >
@@ -428,89 +580,77 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         </CardContent>
       </Card>
 
-      {isDeleteDialogOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4 backdrop-blur-sm"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-account-title"
-        >
-          <div className="w-full max-w-lg rounded-3xl border border-destructive/40 bg-card p-6 shadow-2xl">
-            <div className="space-y-2">
-              <h2
-                id="delete-account-title"
-                className="text-xl font-semibold text-destructive"
-              >
-                Delete account
-              </h2>
-              <p className="text-sm leading-6 text-muted-foreground">
-                This permanently deletes your local Adrian account and all repositories owned by
-                <span className="font-medium text-foreground"> {settings.login}</span>. Type your username and password to continue.
-              </p>
-            </div>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(open) => {
+          setIsDeleteDialogOpen(open)
+          if (!open) {
+            setDeleteForm({ password: "", username: "" })
+            setError(null)
+          }
+        }}
+      >
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Delete account</DialogTitle>
+            <DialogDescription>
+              This permanently deletes your local Adrian account and all repositories owned by{" "}
+              <code>{settings.login}</code>. Type your username and password to confirm.
+            </DialogDescription>
+          </DialogHeader>
 
-            <div className="mt-5 space-y-4">
-              <Field>
-                <FieldLabel>Username</FieldLabel>
-                <FieldContent>
-                  <Input
-                    autoComplete="username"
-                    placeholder={settings.login}
-                    value={deleteForm.username}
-                    onChange={(event) =>
-                      setDeleteForm((current) => ({
-                        ...current,
-                        username: event.target.value,
-                      }))
-                    }
-                  />
-                </FieldContent>
-              </Field>
+          <form className="space-y-3" onSubmit={handleDeleteSubmit}>
+            <Input
+              autoComplete="username"
+              disabled={isDeletingAccount}
+              placeholder={settings.login}
+              value={deleteForm.username}
+              onChange={(event) =>
+                setDeleteForm((current) => ({
+                  ...current,
+                  username: event.target.value,
+                }))
+              }
+            />
+            <Input
+              autoComplete="current-password"
+              disabled={isDeletingAccount}
+              placeholder="Password"
+              type="password"
+              value={deleteForm.password}
+              onChange={(event) =>
+                setDeleteForm((current) => ({
+                  ...current,
+                  password: event.target.value,
+                }))
+              }
+            />
 
-              <Field>
-                <FieldLabel>Password</FieldLabel>
-                <FieldContent>
-                  <Input
-                    autoComplete="current-password"
-                    type="password"
-                    value={deleteForm.password}
-                    onChange={(event) =>
-                      setDeleteForm((current) => ({
-                        ...current,
-                        password: event.target.value,
-                      }))
-                    }
-                  />
-                </FieldContent>
-              </Field>
-            </div>
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
-            {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
-
-            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <DialogFooter>
               <Button
                 className="rounded-xl"
                 disabled={isDeletingAccount}
                 onClick={() => setIsDeleteDialogOpen(false)}
                 type="button"
-                variant="outline"
+                variant="ghost"
               >
                 Cancel
               </Button>
               <Button
                 className="rounded-xl"
                 disabled={!canSubmitDeleteAccount || isDeletingAccount}
-                onClick={handleDeleteAccount}
-                type="button"
+                type="submit"
                 variant="destructive"
               >
                 {isDeletingAccount ? <Loader2 className="animate-spin" /> : <Trash2 />}
-                Delete my account
+                Delete
               </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
