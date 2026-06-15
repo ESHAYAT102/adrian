@@ -241,6 +241,7 @@ export function createLocalRepository({
   runGit(["config", "user.name", GIT_AUTHOR], paths.workTreePath)
   runGit(["config", "user.email", GIT_EMAIL], paths.workTreePath)
   runGit(["init", "--bare", "-b", DEFAULT_BRANCH], paths.barePath)
+  runGit(["config", "http.receivepack", "true"], paths.barePath)
   runGit(["remote", "add", "origin", paths.barePath], paths.workTreePath)
   if (autoInit) {
     writeFileSync(join(paths.workTreePath, "README.md"), `# ${normalized}\n\n${description || "An Adrian repository."}\n`)
@@ -301,6 +302,20 @@ export function commitRepositoryChanges(owner: string, name: string, message: st
     runGit(["update-server-info"], repo.barePath)
   }
 
+  updateRepoMetadata(owner, name, (item) => ({ ...item, updatedAt: new Date().toISOString() }))
+}
+
+export function syncLocalRepositoryWorkTree(owner: string, name: string) {
+  const repo = getLocalRepository(owner, name)
+  if (!repo) throw new Error("Repository not found")
+
+  runGit(["fetch", "origin"], repo.workTreePath)
+  const remoteBranch = `origin/${repo.defaultBranch}`
+  if (!refExists(repo.workTreePath, remoteBranch)) return
+
+  runGit(["checkout", "-B", repo.defaultBranch, remoteBranch], repo.workTreePath)
+  runGit(["reset", "--hard", remoteBranch], repo.workTreePath)
+  runGit(["update-server-info"], repo.barePath)
   updateRepoMetadata(owner, name, (item) => ({ ...item, updatedAt: new Date().toISOString() }))
 }
 
