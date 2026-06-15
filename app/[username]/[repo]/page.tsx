@@ -10,6 +10,7 @@ import {
   GitPullRequest,
   Globe,
   MessageSquare,
+  Plus,
   SquareArrowOutUpRight,
   Tag,
 } from "lucide-react"
@@ -39,6 +40,11 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty"
 import { buildRequestedGitHubUrl } from "@/lib/github-urls"
+import {
+  buildRepositoryCreationAgeLabel,
+  buildRepositoryIssueUrl,
+  buildRepositoryPullRequestUrl,
+} from "@/lib/repository-display"
 import {
   getGitHubRepositoryCommits,
   getGitHubRepositoryDiscussionCount,
@@ -376,6 +382,8 @@ export default async function RepositoryPage({
     buildRepositoryLanguageDistribution(repositoryLanguages)
   const ownerGitHubUrl = `/${repository.owner.login}`
   const repositoryGitHubUrl = repository.html_url
+  const newIssueUrl = buildRepositoryIssueUrl(repositoryGitHubUrl)
+  const newPullRequestUrl = buildRepositoryPullRequestUrl(repositoryGitHubUrl)
   const contentRef = commitRef ?? resolvedBranch
   const showRateLimitNotice =
     Boolean(rateLimited) && contents.length === 0 && !readme && !selectedItem
@@ -481,6 +489,7 @@ export default async function RepositoryPage({
                   <span>
                     Updated {formatRelativeDate(repository.updated_at)}
                   </span>
+                  <span>{buildRepositoryCreationAgeLabel(repository.created_at)}</span>
                 </div>
                 {commitRef ? (
                   <div className="text-xs text-muted-foreground">
@@ -669,11 +678,17 @@ export default async function RepositoryPage({
               }
               issuesContent={
                 <Card className="rounded-2xl">
-                  <CardHeader className="border-b border-border px-5 py-4">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-border px-5 py-4">
                     <CardTitle className="flex items-center gap-3 text-base">
                       <CircleDot className="size-4" />
                       Issues
                     </CardTitle>
+                    <Button asChild variant="outline" size="sm" className="rounded-xl">
+                      <A href={newIssueUrl}>
+                        <Plus className="size-4" />
+                        Open issue
+                      </A>
+                    </Button>
                   </CardHeader>
                   <CardContent className="p-0">
                     {issues.length > 0 ? (
@@ -712,11 +727,17 @@ export default async function RepositoryPage({
               }
               pullsContent={
                 <Card className="rounded-2xl">
-                  <CardHeader className="border-b border-border px-5 py-4">
+                  <CardHeader className="flex flex-row items-center justify-between gap-4 border-b border-border px-5 py-4">
                     <CardTitle className="flex items-center gap-3 text-base">
                       <GitPullRequest className="size-4" />
                       Pull Requests
                     </CardTitle>
+                    <Button asChild variant="outline" size="sm" className="rounded-xl">
+                      <A href={newPullRequestUrl}>
+                        <Plus className="size-4" />
+                        Open PR
+                      </A>
+                    </Button>
                   </CardHeader>
                   <CardContent className="p-0">
                     {pullRequests.length > 0 ? (

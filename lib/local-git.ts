@@ -19,6 +19,7 @@ export type LocalRepositoryMetadata = {
   owner: string
   private?: boolean
   size?: number
+  starredBy?: string[]
   topics?: string[]
   updatedAt: string
 }
@@ -106,6 +107,7 @@ function readMetadata(): LocalRepositoryMetadata[] {
     owner: repo.owner ?? "eshayat",
     private: repo.private ?? false,
     size: repo.size ?? 0,
+    starredBy: repo.starredBy ?? [],
     topics: repo.topics ?? [],
     updatedAt: repo.updatedAt ?? repo.createdAt ?? new Date(0).toISOString(),
   }))
@@ -188,6 +190,27 @@ export function listRepositoriesForOwner(owner: string) {
   return listLocalRepositories().filter((repo) => repo.owner === normalizedOwner)
 }
 
+export function isLocalRepositoryStarredByUser(owner: string, name: string, username: string) {
+  const repo = getLocalRepository(owner, name)
+  return Boolean(repo?.starredBy?.includes(normalizeOwner(username)))
+}
+
+export function starLocalRepositoryForUser(owner: string, name: string, username: string) {
+  const normalizedUsername = normalizeOwner(username)
+  return updateRepoMetadata(owner, name, (repo) => ({
+    ...repo,
+    starredBy: Array.from(new Set([...(repo.starredBy ?? []), normalizedUsername])),
+  }))
+}
+
+export function unstarLocalRepositoryForUser(owner: string, name: string, username: string) {
+  const normalizedUsername = normalizeOwner(username)
+  return updateRepoMetadata(owner, name, (repo) => ({
+    ...repo,
+    starredBy: (repo.starredBy ?? []).filter((starredUser) => starredUser !== normalizedUsername),
+  }))
+}
+
 export function getLocalRepository(owner: string, name: string) {
   const normalizedOwner = normalizeOwner(owner)
   const normalized = normalizeRepositoryName(name)
@@ -261,6 +284,7 @@ export function createLocalRepository({
     owner: normalizedOwner,
     private: isPrivate,
     size: 0,
+    starredBy: [],
     topics: [],
     updatedAt: now,
   }

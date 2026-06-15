@@ -11,7 +11,10 @@ import {
   getRepositoryFileText,
   getRepositoryLanguages,
   getRepositoryReadme,
+  isLocalRepositoryStarredByUser,
   listLocalRepositories,
+  starLocalRepositoryForUser,
+  unstarLocalRepositoryForUser,
   updateLocalRepositoryMetadata,
   writeRepositoryFile,
 } from "@/lib/local-git"
@@ -214,7 +217,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
     private: repo.private ?? false,
     pushed_at: repo.updatedAt,
     size: repo.size ?? 0,
-    stargazers_count: 0,
+    stargazers_count: repo.starredBy?.length ?? 0,
     subscribers_count: 0,
     topics: repo.topics ?? [],
     updated_at: repo.updatedAt,
@@ -292,9 +295,16 @@ export async function deleteGitHubRepository(user: SessionUser, owner: string, r
   return { ok: true, status: 200 }
 }
 
-export async function isGitHubRepositoryStarred(_user?: SessionUser | null, _owner?: string, _repo?: string) { return false }
-export async function starGitHubRepository(_user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> { return getGitHubRepository(owner, repo, _user).then((r) => ({ repository: r.repository, status: 200 })) }
-export async function unstarGitHubRepository(_user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> { return getGitHubRepository(owner, repo, _user).then((r) => ({ repository: r.repository, status: 200 })) }
+export async function isGitHubRepositoryStarred(user?: SessionUser | null, owner?: string, repo?: string) {
+  if (!user || !owner || !repo) return false
+  return isLocalRepositoryStarredByUser(owner, repo, user.login)
+}
+export async function starGitHubRepository(user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> {
+  return { repository: toRepository(starLocalRepositoryForUser(owner, repo, user.login), user), status: 200 }
+}
+export async function unstarGitHubRepository(user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> {
+  return { repository: toRepository(unstarLocalRepositoryForUser(owner, repo, user.login), user), status: 200 }
+}
 export async function forkGitHubRepository(_user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> { return getGitHubRepository(owner, repo, _user).then((r) => ({ repository: r.repository, status: 200 })) }
 
 export async function getGitHubViewerRepositories(user: SessionUser) {
