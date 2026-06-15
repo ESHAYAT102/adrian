@@ -52,7 +52,6 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deleteForm, setDeleteForm] = useState({
-    password: "",
     username: "",
   })
   const [passwordForm, setPasswordForm] = useState({
@@ -230,7 +229,6 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     try {
       const response = await fetch("/api/settings/account", {
         body: JSON.stringify({
-          password: deleteForm.password,
           username: deleteForm.username,
         }),
         headers: {
@@ -242,9 +240,9 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
       if (!response.ok) {
         const message =
           data.error === "invalid_credentials"
-            ? "Username or password did not match this account."
+            ? "Username did not match this account."
             : data.error === "validation_failed"
-              ? "Type your username and password to delete your account."
+              ? "Type your username to delete your account."
               : "Could not delete account. Please try again."
         setError(message)
         toast.error(message)
@@ -264,20 +262,19 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
   }
 
   const canSubmitDeleteAccount =
-    deleteForm.username.trim().toLowerCase() === settings.login.toLowerCase() &&
-    deleteForm.password.length > 0
+    deleteForm.username.trim().toLowerCase() === settings.login.toLowerCase()
 
   const handleDeleteSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!canSubmitDeleteAccount) {
-      toast.error("Type your username and password to delete your account")
+      toast.error("Type your username to delete your account")
       return
     }
     void handleDeleteAccount()
   }
 
   const openDeleteDialog = () => {
-    setDeleteForm({ password: "", username: "" })
+    setDeleteForm({ username: "" })
     setError(null)
     setNotice(null)
     setIsDeleteDialogOpen(true)
@@ -585,7 +582,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
         onOpenChange={(open) => {
           setIsDeleteDialogOpen(open)
           if (!open) {
-            setDeleteForm({ password: "", username: "" })
+            setDeleteForm({ username: "" })
             setError(null)
           }
         }}
@@ -595,7 +592,7 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
             <DialogTitle>Delete account</DialogTitle>
             <DialogDescription>
               This permanently deletes your local Adrian account and all repositories owned by{" "}
-              <code>{settings.login}</code>. Type your username and password to confirm.
+              <code>{settings.login}</code>. Type your username to confirm.
             </DialogDescription>
           </DialogHeader>
 
@@ -612,20 +609,6 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
                 }))
               }
             />
-            <Input
-              autoComplete="current-password"
-              disabled={isDeletingAccount}
-              placeholder="Password"
-              type="password"
-              value={deleteForm.password}
-              onChange={(event) =>
-                setDeleteForm((current) => ({
-                  ...current,
-                  password: event.target.value,
-                }))
-              }
-            />
-
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
             <DialogFooter>

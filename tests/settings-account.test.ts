@@ -100,17 +100,17 @@ describe("settings account management", () => {
     expect(settingsForm).toContain("/api/settings/account")
   })
 
-  it("requires username and password before deleting an account through the API", () => {
+  it("requires only the account username before deleting an account through the API", () => {
     const accountRoute = readFileSync(join(process.cwd(), "app/api/settings/account/route.ts"), "utf8")
 
     expect(accountRoute).toContain("await request.json()")
     expect(accountRoute).toContain("body.username")
-    expect(accountRoute).toContain("body.password")
-    expect(accountRoute).toContain("verifyLocalUserPassword")
+    expect(accountRoute).not.toContain("body.password")
+    expect(accountRoute).not.toContain("verifyLocalUserPassword")
     expect(accountRoute).toContain("invalid_credentials")
   })
 
-  it("uses a custom delete modal that requires username and password instead of a browser confirm", () => {
+  it("uses a shared delete modal that requires username instead of account password", () => {
     const settingsForm = readFileSync(join(process.cwd(), "components/SettingsForm.tsx"), "utf8")
 
     expect(settingsForm).not.toContain("window.confirm")
@@ -121,7 +121,7 @@ describe("settings account management", () => {
     expect(settingsForm).toContain("deleteForm")
     expect(settingsForm).toContain("username: \"\"")
     expect(settingsForm).toContain("value={deleteForm.username}")
-    expect(settingsForm).toContain("password: deleteForm.password")
+    expect(settingsForm).not.toContain("password: deleteForm.password")
   })
 
   it("renders a change password section and calls the password API", () => {
