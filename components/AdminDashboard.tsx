@@ -3,7 +3,10 @@
 import { useMemo, useState } from "react"
 import { GitCommitHorizontal, GitFork, Timer, UserPlus } from "lucide-react"
 
-import type { AdminDashboardFilterId, AdminDashboardStats } from "@/lib/admin-dashboard"
+import type {
+  AdminDashboardFilterId,
+  AdminDashboardStats,
+} from "@/lib/admin-dashboard"
 
 const STAT_META = [
   {
@@ -37,10 +40,14 @@ type AdminDashboardProps = {
 }
 
 export default function AdminDashboard({ stats }: AdminDashboardProps) {
-  const [activeFilter, setActiveFilter] = useState<AdminDashboardFilterId>(stats.filters[0]?.id ?? "7d")
+  const [activeFilter, setActiveFilter] = useState<AdminDashboardFilterId>(
+    stats.filters[0]?.id ?? "7d"
+  )
   const activeStats = stats.byFilter[activeFilter] ?? stats.byFilter["7d"]
   const activeLabel = useMemo(
-    () => stats.filters.find((filter) => filter.id === activeFilter)?.label ?? "Last 7 days",
+    () =>
+      stats.filters.find((filter) => filter.id === activeFilter)?.label ??
+      "Last 7 days",
     [activeFilter, stats.filters]
   )
 
@@ -48,13 +55,20 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
     <section className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-muted-foreground">Admin dashboard</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Site overview</h1>
+          <p className="text-sm font-medium text-muted-foreground">
+            Admin dashboard
+          </p>
+          <h1 className="text-3xl font-semibold tracking-tight">
+            Site overview
+          </h1>
           <p className="text-sm text-muted-foreground">
             Track commits, users, and repository growth across Adrian.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2" aria-label="Dashboard date range filters">
+        <div
+          className="flex flex-wrap gap-2"
+          aria-label="Dashboard date range filters"
+        >
           {stats.filters.map((filter) => (
             <button
               key={filter.id}
@@ -77,17 +91,21 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
         {STAT_META.map((item) => {
           const Icon = item.icon
           return (
-            <div key={item.key} className="rounded-2xl border border-border bg-card p-5">
+            <div
+              key={item.key}
+              className="rounded-2xl border border-border bg-card p-5"
+            >
               <div className="flex items-center justify-between gap-3">
                 <div className="rounded-xl border border-border bg-background p-2 text-muted-foreground">
                   <Icon className="size-4" />
                 </div>
-                <span className="text-xs text-muted-foreground">{activeLabel}</span>
               </div>
               <div className="mt-5 text-3xl font-semibold tracking-tight">
                 {activeStats[item.key].toLocaleString()}
               </div>
-              <div className="mt-1 text-sm font-medium text-foreground">{item.label}</div>
+              <div className="mt-1 text-sm font-medium text-foreground">
+                {item.label}
+              </div>
               <p className="mt-2 text-xs leading-5 text-muted-foreground">
                 {item.description}
               </p>
