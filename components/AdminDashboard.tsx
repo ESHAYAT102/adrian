@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { GitCommitHorizontal, GitFork, Timer, UserPlus } from "lucide-react"
 
 import type {
@@ -44,12 +44,6 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
     stats.filters[0]?.id ?? "7d"
   )
   const activeStats = stats.byFilter[activeFilter] ?? stats.byFilter["7d"]
-  const activeLabel = useMemo(
-    () =>
-      stats.filters.find((filter) => filter.id === activeFilter)?.label ??
-      "Last 7 days",
-    [activeFilter, stats.filters]
-  )
 
   return (
     <section className="space-y-6">
@@ -65,26 +59,20 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
             Track commits, users, and repository growth across Adrian.
           </p>
         </div>
-        <div
-          className="flex flex-wrap gap-2"
-          aria-label="Dashboard date range filters"
-        >
-          {stats.filters.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              onClick={() => setActiveFilter(filter.id)}
-              className={[
-                "rounded-full border px-3 py-1.5 text-xs font-medium transition",
-                activeFilter === filter.id
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border bg-background text-muted-foreground hover:text-foreground",
-              ].join(" ")}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
+        <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+          Dashboard date range
+          <select
+            value={activeFilter}
+            onChange={(event) => setActiveFilter(event.target.value as AdminDashboardFilterId)}
+            className="h-10 rounded-xl border border-border bg-background px-3 text-sm font-medium text-foreground outline-none transition focus:border-ring focus:ring-3 focus:ring-ring/20"
+          >
+            {stats.filters.map((filter) => (
+              <option key={filter.id} value={filter.id}>
+                {filter.label}
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

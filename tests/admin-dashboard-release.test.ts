@@ -106,6 +106,9 @@ describe("admin dashboard stats and releases", () => {
     )
 
     expect(adminDashboard).toContain("Admin dashboard")
+    expect(adminDashboard).toContain("<select")
+    expect(adminDashboard).toContain("Dashboard date range")
+    expect(adminDashboard).not.toContain("stats.filters.map((filter) => (\n            <button")
     expect(adminDashboard).toContain("Last 7 days")
     expect(adminDashboard).toContain("Commits")
     expect(adminDashboard).toContain("New users")
