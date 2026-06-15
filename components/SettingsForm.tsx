@@ -42,6 +42,11 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
   })
   const [isSaving, setIsSaving] = useState(false)
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleteForm, setDeleteForm] = useState({
+    password: "",
+    username: "",
+  })
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(settings.avatarUrl)
@@ -156,19 +161,29 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
   }
 
   const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      "Delete your Adrian account? This signs you out and removes your local account login."
-    )
-    if (!confirmed) return
-
     setIsDeletingAccount(true)
     setError(null)
     setNotice(null)
 
     try {
-      const response = await fetch("/api/settings/account", { method: "DELETE" })
+      const response = await fetch("/api/settings/account", {
+        body: JSON.stringify({
+          password: deleteForm.password,
+          username: deleteForm.username,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "DELETE",
+      })
+      const data = (await response.json().catch(() => ({}))) as { error?: string }
       if (!response.ok) {
-        const message = "Could not delete account. Please try again."
+        const message =
+          data.error === "invalid_credentials"
+            ? "Username or password did not match this account."
+            : data.error === "validation_failed"
+              ? "Type your username and password to delete your account."
+              : "Could not delete account. Please try again."
         setError(message)
         toast.error(message)
         return
@@ -183,6 +198,17 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
     } finally {
       setIsDeletingAccount(false)
     }
+  }
+
+  const canSubmitDeleteAccount =
+    deleteForm.username.trim().toLowerCase() === settings.login.toLowerCase() &&
+    deleteForm.password.length > 0
+
+  const openDeleteDialog = () => {
+    setDeleteForm({ password: "", username: "" })
+    setError(null)
+    setNotice(null)
+    setIsDeleteDialogOpen(true)
   }
 
   return (
@@ -388,15 +414,103 @@ export default function SettingsForm({ settings }: SettingsFormProps) {
           <Button
             className="rounded-xl"
             disabled={isDeletingAccount}
-            onClick={handleDeleteAccount}
+            onClick={openDeleteDialog}
+            onPointerDown={(event) => {
+              event.preventDefault()
+              openDeleteDialog()
+            }}
             type="button"
             variant="destructive"
           >
-            {isDeletingAccount ? <Loader2 className="animate-spin" /> : <Trash2 />}
+            <Trash2 />
             Delete account
           </Button>
         </CardContent>
       </Card>
+
+      {isDeleteDialogOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 px-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+        >
+          <div className="w-full max-w-lg rounded-3xl border border-destructive/40 bg-card p-6 shadow-2xl">
+            <div className="space-y-2">
+              <h2
+                id="delete-account-title"
+                className="text-xl font-semibold text-destructive"
+              >
+                Delete account
+              </h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                This permanently deletes your local Adrian account and all repositories owned by
+                <span className="font-medium text-foreground"> {settings.login}</span>. Type your username and password to continue.
+              </p>
+            </div>
+
+            <div className="mt-5 space-y-4">
+              <Field>
+                <FieldLabel>Username</FieldLabel>
+                <FieldContent>
+                  <Input
+                    autoComplete="username"
+                    placeholder={settings.login}
+                    value={deleteForm.username}
+                    onChange={(event) =>
+                      setDeleteForm((current) => ({
+                        ...current,
+                        username: event.target.value,
+                      }))
+                    }
+                  />
+                </FieldContent>
+              </Field>
+
+              <Field>
+                <FieldLabel>Password</FieldLabel>
+                <FieldContent>
+                  <Input
+                    autoComplete="current-password"
+                    type="password"
+                    value={deleteForm.password}
+                    onChange={(event) =>
+                      setDeleteForm((current) => ({
+                        ...current,
+                        password: event.target.value,
+                      }))
+                    }
+                  />
+                </FieldContent>
+              </Field>
+            </div>
+
+            {error ? <p className="mt-4 text-sm text-destructive">{error}</p> : null}
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <Button
+                className="rounded-xl"
+                disabled={isDeletingAccount}
+                onClick={() => setIsDeleteDialogOpen(false)}
+                type="button"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+              <Button
+                className="rounded-xl"
+                disabled={!canSubmitDeleteAccount || isDeletingAccount}
+                onClick={handleDeleteAccount}
+                type="button"
+                variant="destructive"
+              >
+                {isDeletingAccount ? <Loader2 className="animate-spin" /> : <Trash2 />}
+                Delete my account
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   )
 }

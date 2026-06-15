@@ -6,6 +6,10 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
 import { getGitHubViewerSettings, updateGitHubViewerSettings } from "@/lib/github"
 import {
+  createLocalRepository,
+  getLocalRepository,
+} from "@/lib/local-git"
+import {
   createLocalUser,
   deleteLocalUser,
   getLocalUserByUsername,
@@ -49,11 +53,15 @@ describe("settings account management", () => {
 
   it("deletes a local user account and prevents later password login", () => {
     createLocalUser({ displayName: "Test Account", password: "password123", username: "test" })
+    createLocalRepository({ name: "owned-repo", owner: "test" })
+    createLocalRepository({ name: "other-repo", owner: "someone-else" })
 
     expect(deleteLocalUser("test")).toBe(true)
 
     expect(getLocalUserByUsername("test")).toBeNull()
     expect(verifyLocalUserPassword("test", "password123")).toBeNull()
+    expect(getLocalRepository("test", "owned-repo")).toBeNull()
+    expect(getLocalRepository("someone-else", "other-repo")).not.toBeNull()
   })
 
   it("removes OAuth/app/profile summary cards from the settings UI", () => {
@@ -74,5 +82,26 @@ describe("settings account management", () => {
     expect(settingsForm).not.toContain("readOnly")
     expect(settingsForm).toContain("Delete account")
     expect(settingsForm).toContain("/api/settings/account")
+  })
+
+  it("requires username and password before deleting an account through the API", () => {
+    const accountRoute = readFileSync(join(process.cwd(), "app/api/settings/account/route.ts"), "utf8")
+
+    expect(accountRoute).toContain("await request.json()")
+    expect(accountRoute).toContain("body.username")
+    expect(accountRoute).toContain("body.password")
+    expect(accountRoute).toContain("verifyLocalUserPassword")
+    expect(accountRoute).toContain("invalid_credentials")
+  })
+
+  it("uses a custom delete modal that requires username and password instead of a browser confirm", () => {
+    const settingsForm = readFileSync(join(process.cwd(), "components/SettingsForm.tsx"), "utf8")
+
+    expect(settingsForm).not.toContain("window.confirm")
+    expect(settingsForm).toContain("isDeleteDialogOpen")
+    expect(settingsForm).toContain("deleteForm")
+    expect(settingsForm).toContain("username: \"\"")
+    expect(settingsForm).toContain("value={deleteForm.username}")
+    expect(settingsForm).toContain("password: deleteForm.password")
   })
 })

@@ -2,7 +2,13 @@ import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
-import { getDataDir, validateUsername, normalizeOwner } from "@/lib/local-git"
+import {
+  deleteLocalRepository,
+  getDataDir,
+  listRepositoriesForOwner,
+  normalizeOwner,
+  validateUsername,
+} from "@/lib/local-git"
 
 export type LocalUserRecord = {
   avatarUrl?: string | null
@@ -137,6 +143,11 @@ export function deleteLocalUser(username: string) {
   const users = readUserRecords()
   const nextUsers = users.filter((item) => item.username !== normalized)
   if (nextUsers.length === users.length) return false
+
+  for (const repo of listRepositoriesForOwner(normalized)) {
+    deleteLocalRepository(repo.owner, repo.name)
+  }
+
   writeUserRecords(nextUsers)
   return true
 }
