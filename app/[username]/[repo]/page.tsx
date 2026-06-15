@@ -67,7 +67,7 @@ import {
   type GitHubRepositoryPullRequest,
   type GitHubRepositoryRelease,
 } from "@/lib/github"
-import { getSessionUser } from "@/lib/session"
+import { getSessionUser, isAdminSessionUser } from "@/lib/session"
 
 type RepositoryPageProps = {
   params: Promise<{
@@ -293,6 +293,7 @@ export default async function RepositoryPage({
   const resolvedBranch = branch ?? repository.default_branch ?? "main"
   const isCommitRef = Boolean(commitRef)
   const canManageRepository =
+    isAdminSessionUser(sessionUser) ||
     sessionUser?.login === repository.owner.login ||
     Boolean(repository.permissions?.admin || repository.permissions?.maintain)
   const currentTab: RepositoryTab = isAuthenticated

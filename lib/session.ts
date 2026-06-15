@@ -7,6 +7,8 @@ import {
 
 import { cookies } from "next/headers"
 
+import { isAdminUser } from "@/lib/admin"
+
 export type SessionUser = {
   accessToken: string
   email: string | null
@@ -116,6 +118,10 @@ export function decodeSessionCookie(cookieValue?: string | null) {
   } catch {
     return null
   }
+}
+
+export function isAdminSessionUser(user?: SessionUser | null) {
+  return isAdminUser(user)
 }
 
 export async function getSessionUser() {

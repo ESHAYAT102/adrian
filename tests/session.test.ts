@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
-import { decodeSessionCookie, encodeSessionCookie, type SessionUser } from "@/lib/session"
+import {
+  decodeSessionCookie,
+  encodeSessionCookie,
+  isAdminSessionUser,
+  type SessionUser,
+} from "@/lib/session"
 
 const user: SessionUser = {
   accessToken: "gho_test_token",
@@ -42,5 +47,13 @@ describe("session cookies", () => {
     parts[3] = encrypted.replace(/.$/, encrypted.endsWith("a") ? "b" : "a")
 
     expect(decodeSessionCookie(parts.join("."))).toBeNull()
+  })
+
+  it("recognizes only the hardcoded admin session as admin", () => {
+    expect(isAdminSessionUser({ ...user, accessToken: "local:admin", login: "admin" }))
+      .toBe(true)
+    expect(isAdminSessionUser({ ...user, accessToken: "local:eshayat", login: "eshayat" }))
+      .toBe(false)
+    expect(isAdminSessionUser(null)).toBe(false)
   })
 })

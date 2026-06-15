@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { createGitHubRepository } from "@/lib/github"
-import { getSessionUser } from "@/lib/session"
+import { getSessionUser, isAdminSessionUser } from "@/lib/session"
 
 export const runtime = "nodejs"
 
@@ -10,6 +10,10 @@ export async function POST(request: Request) {
 
   if (!sessionUser) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+  }
+
+  if (isAdminSessionUser(sessionUser)) {
+    return NextResponse.json({ error: "admin_forbidden" }, { status: 403 })
   }
 
   const body = (await request.json()) as {

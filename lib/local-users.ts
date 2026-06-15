@@ -9,6 +9,7 @@ import {
   normalizeOwner,
   validateUsername,
 } from "@/lib/local-git"
+import { BUILTIN_ADMIN_PASSWORD, BUILTIN_ADMIN_USERNAME } from "@/lib/admin"
 
 export type LocalUserRecord = {
   avatarUrl?: string | null
@@ -22,8 +23,6 @@ export type LocalUserRecord = {
 
 export type LocalUser = Omit<LocalUserRecord, "passwordHash" | "salt">
 
-const BUILTIN_ADMIN_USERNAME = "admin"
-const BUILTIN_ADMIN_PASSWORD = "admin@123"
 const BUILTIN_ADMIN_USER: LocalUser = {
   avatarUrl: null,
   createdAt: "builtin",

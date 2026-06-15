@@ -33,6 +33,7 @@ import {
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes"
+import { isAdminUser } from "@/lib/admin"
 import {
   THEME_FAMILIES,
   getThemeFamily,
@@ -155,7 +156,7 @@ export default function CommandPalette({
   const currentFamily = getThemeFamily(currentTheme)
 
   const items = useMemo<CommandItem[]>(() => {
-    const baseItems: CommandItem[] = [
+    let baseItems: CommandItem[] = [
       {
         id: "search",
         label: "Search",
@@ -182,6 +183,10 @@ export default function CommandPalette({
       },
     ]
 
+    if (isAdminUser(user)) {
+      baseItems = baseItems.filter((item) => item.id !== "new-repo")
+    }
+
     if (user?.login) {
       baseItems.unshift({
         id: "profile",
@@ -192,7 +197,7 @@ export default function CommandPalette({
     }
 
     return baseItems
-  }, [user?.login])
+  }, [user])
 
   useEffect(() => {
     if (!open) return

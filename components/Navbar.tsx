@@ -21,6 +21,7 @@ import {
 import { ContextMenuItem } from "@/components/ui/context-menu"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
 import type { GitHubNotification } from "@/lib/github"
+import { isAdminUser } from "@/lib/admin"
 import { getThemeLabel, getThemeMode, type ThemeId } from "@/lib/themes"
 import {
   Settings,
@@ -149,7 +150,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           >
             <Command />
           </Button>
-          {user ? (
+          {user && !isAdminUser(user) ? (
             <Button
               asChild
               className="hidden cursor-default rounded-full sm:inline-flex"

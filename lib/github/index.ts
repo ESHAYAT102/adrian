@@ -1,6 +1,7 @@
 import { extname } from "node:path"
 
 import type { SessionUser } from "@/lib/session"
+import { isAdminUser } from "@/lib/admin"
 import { getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-users"
 import {
   createLocalRepository,
@@ -194,7 +195,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
   const fullName = `${repo.owner}/${repo.name}`
   const languages = getRepositoryLanguages(repo.owner, repo.name)
   const language = Object.entries(languages).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
-  const canPush = viewer?.login === repo.owner
+  const canPush = viewer?.login === repo.owner || isAdminUser(viewer)
   return {
     archived: repo.archived ?? false,
     clone_url: `${siteUrl()}/${fullName}.git`,
@@ -273,7 +274,12 @@ export async function updateGitHubViewerSettings(user: SessionUser | null, input
   return { settings: await getGitHubViewerSettings(user) }
 }
 
+function canManageLocalRepository(user: SessionUser, owner: string) {
+  return isAdminUser(user) || user.login === owner
+}
+
 export async function createGitHubRepository(user: SessionUser, input: GitHubCreateRepositoryInput): Promise<RepositoryResult> {
+  if (isAdminUser(user)) return { error: "admin_forbidden", repository: null, status: 403 }
   const repo = createLocalRepository({
     autoInit: input.auto_init ?? false,
     description: input.description ?? null,
@@ -286,12 +292,12 @@ export async function createGitHubRepository(user: SessionUser, input: GitHubCre
 }
 
 export async function updateGitHubRepositoryMetadata(user: SessionUser, owner: string, repo: string, input: GitHubRepositoryMetadataUpdateInput): Promise<RepositoryResult> {
-  if (user.login !== owner) throw new Error("Only the repository owner can update this repository")
+  if (!canManageLocalRepository(user, owner)) throw new Error("Only the repository owner can update this repository")
   return { repository: toRepository(updateLocalRepositoryMetadata(owner, repo, input), user) }
 }
 
 export async function deleteGitHubRepository(user: SessionUser, owner: string, repo: string): Promise<DeleteResult> {
-  if (user.login !== owner) throw new Error("Only the repository owner can delete this repository")
+  if (!canManageLocalRepository(user, owner)) throw new Error("Only the repository owner can delete this repository")
   deleteLocalRepository(owner, repo)
   return { ok: true, status: 200 }
 }
@@ -389,7 +395,7 @@ export async function getGitHubRepositoryContents(owner: string, repo: string, p
 }
 
 export async function updateGitHubRepositoryFile(user: SessionUser, owner: string, repo: string, input: GitHubRepositoryFileUpdateInput): Promise<FileUpdateResult> {
-  if (user.login !== owner) throw new Error("Only the repository owner can update files")
+  if (!canManageLocalRepository(user, owner)) throw new Error("Only the repository owner can update files")
   writeRepositoryFile({ content: input.content, message: input.message, name: repo, owner, path: input.path })
   return { commit: { sha: Date.now().toString(16) }, content: await getGitHubRepositoryContents(owner, repo, input.path, user, input.branch) }
 }
