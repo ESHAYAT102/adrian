@@ -38,11 +38,9 @@ const SESSION_AUTH_TAG_BYTES = 16
 function getSessionSecret() {
   const secret = process.env.ADRIAN_SESSION_SECRET || process.env.NEXTAUTH_SECRET
 
-  if (!secret) {
-    return "adrian-local-development-secret"
-  }
+  if (secret) return secret
 
-  return secret
+  return "adrian-local-development-secret"
 }
 
 function getSessionEncryptionKey() {
