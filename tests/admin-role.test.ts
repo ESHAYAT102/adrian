@@ -3,12 +3,14 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
+import { assignAdmin } from "@/lib/admin"
 import {
   createGitHubRepository,
   deleteGitHubRepository,
   updateGitHubRepositoryMetadata,
 } from "@/lib/github"
 import { getLocalRepository } from "@/lib/local-git"
+import { createLocalUser } from "@/lib/local-users"
 import type { SessionUser } from "@/lib/session"
 
 let dataDir: string
@@ -32,6 +34,9 @@ const normalUser: SessionUser = {
 beforeEach(() => {
   dataDir = mkdtempSync(join(tmpdir(), "adrian-admin-role-"))
   process.env.ADRIAN_DATA_DIR = dataDir
+  createLocalUser({ password: "admin-password", username: "admin" })
+  assignAdmin("admin")
+  createLocalUser({ password: "alice-password", username: "alice" })
 })
 
 afterEach(() => {
@@ -40,7 +45,7 @@ afterEach(() => {
 })
 
 describe("admin role behavior", () => {
-  it("blocks repository creation for the hardcoded admin account", () => {
+  it("blocks repository creation for the admin account", () => {
     const repositoriesRoute = readFileSync(
       join(process.cwd(), "app/api/repositories/route.ts"),
       "utf8"

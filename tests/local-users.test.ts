@@ -10,7 +10,6 @@ import {
   updateLocalUserProfile,
   verifyLocalUserPassword,
 } from "@/lib/local-users"
-
 let dataDir: string
 
 beforeEach(() => {
@@ -44,23 +43,6 @@ describe("local users", () => {
       verifyLocalUserPassword("eshayat", "correct horse battery staple")
     ).toMatchObject({ username: "eshayat" })
     expect(verifyLocalUserPassword("eshayat", "correct horse battery staple"))
-      .not.toHaveProperty("passwordHash")
-  })
-
-  it("allows the hardcoded admin account to log in without persisting it", () => {
-    expect(listLocalUsers()).toHaveLength(0)
-    expect(verifyLocalUserPassword("admin", "wrong-password")).toBeNull()
-
-    expect(verifyLocalUserPassword("admin", "admin@123")).toMatchObject({
-      displayName: "Admin",
-      username: "admin",
-    })
-    expect(getLocalUserByUsername("admin")).toMatchObject({
-      displayName: "Admin",
-      username: "admin",
-    })
-    expect(listLocalUsers()).toHaveLength(0)
-    expect(verifyLocalUserPassword("admin", "admin@123"))
       .not.toHaveProperty("passwordHash")
   })
 

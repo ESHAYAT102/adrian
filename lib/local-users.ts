@@ -9,7 +9,7 @@ import {
   normalizeOwner,
   validateUsername,
 } from "@/lib/local-git"
-import { BUILTIN_ADMIN_PASSWORD, BUILTIN_ADMIN_USERNAME } from "@/lib/admin"
+import { isAdminAssigned } from "@/lib/admin"
 
 export type LocalUserRecord = {
   avatarUrl?: string | null
@@ -22,19 +22,6 @@ export type LocalUserRecord = {
 }
 
 export type LocalUser = Omit<LocalUserRecord, "passwordHash" | "salt">
-
-const BUILTIN_ADMIN_USER: LocalUser = {
-  avatarUrl: null,
-  createdAt: "builtin",
-  displayName: "Admin",
-  email: null,
-  username: BUILTIN_ADMIN_USERNAME,
-}
-
-function getBuiltInUser(username: string) {
-  const normalized = normalizeOwner(username)
-  return normalized === BUILTIN_ADMIN_USERNAME ? BUILTIN_ADMIN_USER : null
-}
 
 function getUsersPath() {
   const dir = getDataDir()
@@ -78,9 +65,6 @@ export function listLocalUsers() {
 }
 
 export function getLocalUserByUsername(username: string) {
-  const builtInUser = getBuiltInUser(username)
-  if (builtInUser) return builtInUser
-
   const normalized = normalizeOwner(username)
   const user = readUserRecords().find((item) => item.username === normalized)
   return user ? publicUser(user) : null
@@ -100,7 +84,6 @@ export function createLocalUser({
   const normalized = normalizeOwner(username)
   const validation = validateUsername(normalized)
   if (!validation.ok) throw new Error(validation.error)
-  if (normalized === BUILTIN_ADMIN_USERNAME) throw new Error("Username already exists")
   if (password.length < 8) throw new Error("Password must be at least 8 characters")
 
   const users = readUserRecords()
@@ -122,10 +105,6 @@ export function createLocalUser({
 
 export function verifyLocalUserPassword(username: string, password: string) {
   const normalized = normalizeOwner(username)
-  if (normalized === BUILTIN_ADMIN_USERNAME) {
-    return password === BUILTIN_ADMIN_PASSWORD ? BUILTIN_ADMIN_USER : null
-  }
-
   const user = readUserRecords().find((item) => item.username === normalized)
   if (!user) return null
   if (!verifyPassword(password, user.salt, user.passwordHash)) return null
@@ -135,7 +114,6 @@ export function verifyLocalUserPassword(username: string, password: string) {
 export function adminUpdateLocalUserPassword(username: string, newPassword: string) {
   const normalized = normalizeOwner(username)
   if (newPassword.length < 8) return { error: "password_too_short", ok: false }
-  if (normalized === BUILTIN_ADMIN_USERNAME) return { error: "admin_forbidden", ok: false }
 
   const users = readUserRecords()
   const index = users.findIndex((item) => item.username === normalized)

@@ -22,30 +22,49 @@ const ALLOWED_AVATAR_TYPES = new Map([
   ["image/webp", "webp"],
 ])
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+}
+
+export async function OPTIONS() {
+  return NextResponse.json(null, { headers: corsHeaders })
+}
+
 export async function POST(request: Request) {
   const sessionUser = await getSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 })
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401, headers: corsHeaders }
+    )
   }
 
   const formData = await request.formData()
   const file = formData.get("avatar")
 
   if (!(file instanceof File)) {
-    return NextResponse.json({ error: "avatar_required" }, { status: 400 })
+    return NextResponse.json(
+      { error: "avatar_required" },
+      { status: 400, headers: corsHeaders }
+    )
   }
 
   const extension = ALLOWED_AVATAR_TYPES.get(file.type)
   if (!extension) {
     return NextResponse.json(
       { error: "unsupported_image_type" },
-      { status: 400 }
+      { status: 400, headers: corsHeaders }
     )
   }
 
   if (file.size > MAX_AVATAR_BYTES) {
-    return NextResponse.json({ error: "image_too_large" }, { status: 400 })
+    return NextResponse.json(
+      { error: "image_too_large" },
+      { status: 400, headers: corsHeaders }
+    )
   }
 
   const avatarsDir = join(getDataDir(), "avatars")
@@ -62,11 +81,14 @@ export async function POST(request: Request) {
   const user = updateLocalUserProfile(sessionUser.login, { avatarUrl })
 
   if (!user) {
-    return NextResponse.json({ error: "user_not_found" }, { status: 404 })
+    return NextResponse.json(
+      { error: "user_not_found" },
+      { status: 404, headers: corsHeaders }
+    )
   }
 
   const nextSessionUser = toSessionUser(user)
-  const response = NextResponse.json({ avatarUrl, user: nextSessionUser })
+  const response = NextResponse.json({ avatarUrl, user: nextSessionUser }, { headers: corsHeaders })
   response.cookies.set(
     SESSION_COOKIE_NAME,
     encodeSessionCookie(nextSessionUser),
