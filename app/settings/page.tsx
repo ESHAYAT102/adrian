@@ -40,9 +40,6 @@ export default async function SettingsPage() {
         <main className="mx-auto max-w-4xl px-5 pt-24 pb-10">
           <div className="mb-8 space-y-2">
             <h1 className="text-4xl font-semibold tracking-tight">Settings</h1>
-            <p className="text-sm text-muted-foreground">
-              Manage your local Adrian account details.
-            </p>
           </div>
 
           <SettingsForm settings={settings} />
