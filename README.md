@@ -38,6 +38,16 @@ After creating user `eshayat` and repository `cool-cli`, clone it with:
 git clone http://localhost:8390/eshayat/cool-cli.git
 ```
 
+## Push to a repository
+
+After making changes to the code, push it with:
+
+```bash
+git push -u origin main
+username: # Put your username here. In this case, 'eshayat'
+username: # Put that account's password here, no keys
+```
+
 ## Environment variables
 
 | Variable | Default | Description |
