@@ -6,7 +6,7 @@ export const runtime = "nodejs"
 
 export async function GET(request: NextRequest) {
   const callbackUrl = request.nextUrl.searchParams.get("callbackUrl") || "/"
-  const response = NextResponse.redirect(new URL(callbackUrl, request.nextUrl.origin))
+  const response = NextResponse.redirect(new URL(callbackUrl, request.url))
 
   response.cookies.set(SESSION_COOKIE_NAME, "", {
     ...sessionCookieOptions,

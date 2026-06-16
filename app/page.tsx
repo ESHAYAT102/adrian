@@ -32,7 +32,7 @@ export default async function Page({ searchParams }: HomePageProps) {
         isAdmin ? Promise.resolve([]) : getGitHubActivity(user.login, user),
       ])
     : [null, await getTrendingRepositories(user), []]
-  const adminUsers = isAdmin ? listLocalUsers() : []
+  const adminUsers = isAdmin ? listLocalUsers().filter((u) => u.username !== user?.login) : []
   const adminRepositories = isAdmin ? listLocalRepositories() : []
   const adminStats = isAdmin ? buildAdminDashboardStats() : null
 

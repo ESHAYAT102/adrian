@@ -150,7 +150,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
           >
             <Command />
           </Button>
-          {user && !isAdmin ? (
+          {user ? (
             <Button
               asChild
               className="hidden cursor-default rounded-full sm:inline-flex"

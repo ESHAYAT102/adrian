@@ -290,7 +290,6 @@ function canManageLocalRepository(user: SessionUser, owner: string) {
 }
 
 export async function createGitHubRepository(user: SessionUser, input: GitHubCreateRepositoryInput): Promise<RepositoryResult> {
-  if (isAdminUser(user)) return { error: "admin_forbidden", repository: null, status: 403 }
   const repo = createLocalRepository({
     autoInit: input.auto_init ?? false,
     description: input.description ?? null,
