@@ -5,6 +5,8 @@ import Script from "next/script"
 import AppKeyboardShortcuts from "@/components/AppKeyboardShortcuts"
 import AuthProvider from "@/components/AuthProvider"
 import "./globals.css"
+import { getAdminUsername } from "@/lib/admin-store"
+import { isAdminUser } from "@/lib/admin"
 import { getSessionUser } from "@/lib/session"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
@@ -53,6 +55,8 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const user = await getSessionUser()
+  const adminUsername = getAdminUsername()
+  const isAdmin = isAdminUser(user, adminUsername)
 
   return (
     <html
@@ -72,7 +76,7 @@ export default async function RootLayout({
           src="https://cloud.umami.is/script.js"
           data-website-id="d67f8207-6850-461e-9db7-c1f6d0617387"
         />
-        <AuthProvider user={user}>
+        <AuthProvider isAdmin={isAdmin} user={user}>
           <ThemeProvider>
             <AppKeyboardShortcuts />
             <UiSoundEffects />

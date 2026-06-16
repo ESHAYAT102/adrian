@@ -33,7 +33,7 @@ import {
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import { useThemeTransition } from "@/hooks/use-theme-transition"
 import { usePrefetchRoutes } from "@/hooks/usePrefetchRoutes"
-import { isAdminUser } from "@/lib/admin"
+
 import {
   THEME_FAMILIES,
   getThemeFamily,
@@ -136,7 +136,7 @@ export default function CommandPalette({
   initialValue,
 }: CommandPaletteProps) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { isAdmin, user } = useAuth()
   const { resolvedTheme, setThemeWithTransition, theme, toggleTheme } =
     useThemeTransition()
   const [value, setValue] = useState("")
@@ -183,7 +183,7 @@ export default function CommandPalette({
       },
     ]
 
-    if (isAdminUser(user)) {
+    if (isAdmin) {
       baseItems = baseItems.filter((item) => item.id !== "new-repo")
     }
 

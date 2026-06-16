@@ -9,7 +9,7 @@ import {
   normalizeOwner,
   validateUsername,
 } from "@/lib/local-git"
-import { isAdminAssigned } from "@/lib/admin"
+import { isAdminAssigned } from "@/lib/admin-store"
 
 export type LocalUserRecord = {
   avatarUrl?: string | null

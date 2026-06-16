@@ -9,7 +9,7 @@ import {
   isAdminSessionUser,
   type SessionUser,
 } from "@/lib/session"
-import { assignAdmin } from "@/lib/admin"
+import { assignAdmin } from "@/lib/admin-store"
 
 const user: SessionUser = {
   accessToken: "gho_test_token",

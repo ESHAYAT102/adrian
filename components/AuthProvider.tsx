@@ -10,26 +10,30 @@ import {
 import type { SessionUser } from "@/lib/session"
 
 type AuthContextValue = {
+  isAdmin: boolean
   isAuthenticated: boolean
   user: SessionUser | null
 }
 
 const AuthContext = createContext<AuthContextValue>({
+  isAdmin: false,
   isAuthenticated: false,
   user: null,
 })
 
 type AuthProviderProps = PropsWithChildren<{
+  isAdmin: boolean
   user: SessionUser | null
 }>
 
-export default function AuthProvider({ children, user }: AuthProviderProps) {
+export default function AuthProvider({ children, isAdmin, user }: AuthProviderProps) {
   const value = useMemo(
     () => ({
+      isAdmin,
       isAuthenticated: Boolean(user),
       user,
     }),
-    [user]
+    [isAdmin, user]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

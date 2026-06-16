@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
-import { assignAdmin } from "@/lib/admin"
+import { assignAdmin } from "@/lib/admin-store"
 import {
   createGitHubRepository,
   deleteGitHubRepository,
@@ -58,8 +58,8 @@ describe("admin role behavior", () => {
     expect(repositoriesRoute).toContain("admin_forbidden")
     expect(newRepositoryPage).toContain("isAdminSessionUser")
     expect(newRepositoryPage).toContain("Admins cannot create repositories")
-    expect(navbar).toContain("!isAdminUser(user)")
-    expect(commandPalette).toContain("isAdminUser(user)")
+    expect(navbar).toContain("!isAdmin")
+    expect(commandPalette).toContain("isAdmin")
     expect(commandPalette).toContain("item.id !== \"new-repo\"")
   })
 

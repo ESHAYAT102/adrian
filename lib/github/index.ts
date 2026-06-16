@@ -1,7 +1,8 @@
 import { extname } from "node:path"
 
 import type { SessionUser } from "@/lib/session"
-import { isAdminUser } from "@/lib/admin"
+import { getAdminUsername } from "@/lib/admin-store"
+import { isAdminUser as isAdminUserPure } from "@/lib/admin"
 import { getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-users"
 import {
   createLocalRepository,
@@ -21,6 +22,11 @@ import {
   updateLocalRepositoryMetadata,
   writeRepositoryFile,
 } from "@/lib/local-git"
+
+function isAdminUser(user?: { login?: string | null } | null) {
+  const adminUsername = getAdminUsername()
+  return isAdminUserPure(user, adminUsername)
+}
 
 export type GitHubProfile = {
   avatar_url: string | null

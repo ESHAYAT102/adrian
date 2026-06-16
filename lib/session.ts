@@ -9,6 +9,7 @@ import { join } from "node:path"
 
 import { cookies } from "next/headers"
 
+import { getAdminUsername } from "@/lib/admin-store"
 import { isAdminUser } from "@/lib/admin"
 
 export type SessionUser = {
@@ -182,7 +183,8 @@ export function decodeSessionCookie(cookieValue?: string | null) {
 }
 
 export function isAdminSessionUser(user?: SessionUser | null) {
-  return isAdminUser(user)
+  const adminUsername = getAdminUsername()
+  return isAdminUser(user, adminUsername)
 }
 
 export async function getSessionUser() {

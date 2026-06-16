@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { assignAdmin, isAdminAssigned } from "@/lib/admin"
+import { assignAdmin, isAdminAssigned } from "@/lib/admin-store"
 import { toSessionUser, verifyLocalUserPassword } from "@/lib/local-users"
 import { encodeSessionCookie, SESSION_COOKIE_NAME, sessionCookieOptions } from "@/lib/session"
 
