@@ -1,10 +1,11 @@
+import { randomBytes } from "node:crypto"
 import { mkdirSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
 import { NextResponse } from "next/server"
 
 import { getDataDir } from "@/lib/local-git"
-import { toSessionUser, updateLocalUserProfile } from "@/lib/local-users"
+import { createLocalUser, toSessionUser, updateLocalUserProfile } from "@/lib/local-users"
 import {
   encodeSessionCookie,
   getSessionUser,
@@ -78,13 +79,22 @@ export async function POST(request: Request) {
   )
 
   const avatarUrl = `/api/users/${sessionUser.login}/avatar?v=${Date.now()}`
-  const user = updateLocalUserProfile(sessionUser.login, { avatarUrl })
+  let user = updateLocalUserProfile(sessionUser.login, { avatarUrl })
 
   if (!user) {
-    return NextResponse.json(
-      { error: "user_not_found" },
-      { status: 404, headers: corsHeaders }
-    )
+    createLocalUser({
+      displayName: sessionUser.name,
+      email: sessionUser.email,
+      password: randomBytes(16).toString("hex"),
+      username: sessionUser.login,
+    })
+    user = updateLocalUserProfile(sessionUser.login, { avatarUrl })
+    if (!user) {
+      return NextResponse.json(
+        { error: "user_not_found" },
+        { status: 404, headers: corsHeaders }
+      )
+    }
   }
 
   const nextSessionUser = toSessionUser(user)
