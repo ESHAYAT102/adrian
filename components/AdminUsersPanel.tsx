@@ -1,7 +1,12 @@
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 
 import type { LocalRepositoryMetadata } from "@/lib/local-git"
 import type { LocalUser } from "@/lib/local-users"
+
+import AdminUserActions from "@/components/AdminUserActions"
 
 type AdminUsersPanelProps = {
   repositories: LocalRepositoryMetadata[]
@@ -10,14 +15,20 @@ type AdminUsersPanelProps = {
 
 export default function AdminUsersPanel({
   repositories,
-  users,
+  users: initialUsers,
 }: AdminUsersPanelProps) {
+  const [users, setUsers] = useState(initialUsers)
+
   const repositoryCountByOwner = new Map<string, number>()
   for (const repository of repositories) {
     repositoryCountByOwner.set(
       repository.owner,
       (repositoryCountByOwner.get(repository.owner) ?? 0) + 1
     )
+  }
+
+  function handleDeleted(username: string) {
+    setUsers((prev) => prev.filter((u) => u.username !== username))
   }
 
   return (
@@ -36,24 +47,32 @@ export default function AdminUsersPanel({
               const repositoryCount =
                 repositoryCountByOwner.get(user.username) ?? 0
               return (
-                <Link
+                <div
                   key={user.username}
-                  href={`/${user.username}`}
                   className="flex items-center justify-between gap-4 px-5 py-4 transition-colors hover:bg-accent/40"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-foreground">
-                      {user.displayName || user.username}
-                    </p>
-                    <p className="truncate text-sm text-muted-foreground">
-                      @{user.username}
-                    </p>
-                  </div>
-                  <div className="shrink-0 px-3 py-1 text-sm text-muted-foreground">
-                    {repositoryCount}{" "}
-                    {repositoryCount === 1 ? "repository" : "repositories"}
-                  </div>
-                </Link>
+                  <Link
+                    href={`/${user.username}`}
+                    className="flex min-w-0 flex-1 items-center justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">
+                        {user.displayName || user.username}
+                      </p>
+                      <p className="truncate text-sm text-muted-foreground">
+                        @{user.username}
+                      </p>
+                    </div>
+                    <div className="shrink-0 px-3 py-1 text-sm text-muted-foreground">
+                      {repositoryCount}{" "}
+                      {repositoryCount === 1 ? "repository" : "repositories"}
+                    </div>
+                  </Link>
+                  <AdminUserActions
+                    username={user.username}
+                    onDeleted={handleDeleted}
+                  />
+                </div>
               )
             })}
           </div>

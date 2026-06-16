@@ -16,14 +16,14 @@ const user: SessionUser = {
 }
 
 describe("session cookies", () => {
-  const previousSecret = process.env.NEXTAUTH_SECRET
+  const previousSecret = process.env.ADRIAN_SESSION_SECRET
 
   beforeEach(() => {
-    process.env.NEXTAUTH_SECRET = "test-secret"
+    process.env.ADRIAN_SESSION_SECRET = "test-secret"
   })
 
   afterEach(() => {
-    process.env.NEXTAUTH_SECRET = previousSecret
+    process.env.ADRIAN_SESSION_SECRET = previousSecret
   })
 
   it("round-trips a signed session cookie", () => {

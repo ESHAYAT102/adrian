@@ -4,6 +4,8 @@ import {
   createHash,
   randomBytes,
 } from "node:crypto"
+import { existsSync, readFileSync, writeFileSync } from "node:fs"
+import { join } from "node:path"
 
 import { cookies } from "next/headers"
 
@@ -35,12 +37,69 @@ const SESSION_COOKIE_VERSION = "v2"
 const SESSION_IV_BYTES = 12
 const SESSION_AUTH_TAG_BYTES = 16
 
+function getEnvFilePath() {
+  return join(process.cwd(), ".env")
+}
+
+function readSecretFromEnvFile() {
+  const envPath = getEnvFilePath()
+  if (!existsSync(envPath)) return null
+
+  const content = readFileSync(envPath, "utf8")
+  for (const line of content.split("\n")) {
+    const trimmed = line.trim()
+    if (trimmed.startsWith("ADRIAN_SESSION_SECRET=")) {
+      const value = trimmed.slice("ADRIAN_SESSION_SECRET=".length).replace(/^["']|["']$/g, "")
+      if (value) return value
+    }
+  }
+  return null
+}
+
+function writeSecretToEnvFile(secret: string) {
+  if (process.env.NODE_ENV === "test") return
+  const envPath = getEnvFilePath()
+  const line = `ADRIAN_SESSION_SECRET=${secret}\n`
+
+  if (!existsSync(envPath)) {
+    writeFileSync(envPath, line)
+    return
+  }
+
+  const content = readFileSync(envPath, "utf8")
+  const lines = content.split("\n")
+  let replaced = false
+
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].trim().startsWith("ADRIAN_SESSION_SECRET=")) {
+      lines[i] = line.trim()
+      replaced = true
+      break
+    }
+  }
+
+  if (!replaced) {
+    lines.push(line.trim())
+  }
+
+  writeFileSync(envPath, lines.join("\n") + "\n")
+}
+
 function getSessionSecret() {
-  const secret = process.env.ADRIAN_SESSION_SECRET || process.env.NEXTAUTH_SECRET
+  if (process.env.ADRIAN_SESSION_SECRET) {
+    return process.env.ADRIAN_SESSION_SECRET
+  }
 
-  if (secret) return secret
+  const fromFile = readSecretFromEnvFile()
+  if (fromFile) {
+    process.env.ADRIAN_SESSION_SECRET = fromFile
+    return fromFile
+  }
 
-  return "adrian-local-development-secret"
+  const generated = randomBytes(32).toString("hex")
+  process.env.ADRIAN_SESSION_SECRET = generated
+  writeSecretToEnvFile(generated)
+  return generated
 }
 
 function getSessionEncryptionKey() {
@@ -105,6 +164,10 @@ function decryptSessionPayload(cookieValue: string) {
 }
 
 export function encodeSessionCookie(user: SessionUser) {
+  return encryptSessionPayload({ user })
+}
+
+export function createSessionCookie(user: SessionUser) {
   return encryptSessionPayload({ user })
 }
 

@@ -4,14 +4,11 @@ import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
 import {
+  adminUpdateLocalUserPassword,
+  createLocalUser,
   deleteLocalUser,
-  updateLocalUserPassword,
+  listLocalUsers,
 } from "@/lib/local-users"
-import { listLocalUsers } from "@/lib/local-users"
-import {
-  createSessionCookie,
-  getSessionUser,
-} from "@/lib/session"
 
 describe("admin user management", () => {
   let tempDir: string
@@ -27,28 +24,25 @@ describe("admin user management", () => {
 
   it("allows admin to change a user's password", async () => {
     const username = "target-user"
-    const oldPassword = "old-password"
     const newPassword = "new-secure-password"
 
-    // Setup user
-    // Assuming a helper exists to seed users; otherwise use internal logic
-    // For this test we simulate the API call to update password
-    await updateLocalUserPassword(username, newPassword)
+    createLocalUser({ password: "old-password", username })
+
+    const result = adminUpdateLocalUserPassword(username, newPassword)
+    expect(result.ok).toBe(true)
 
     const users = await listLocalUsers()
     const user = users.find((u) => u.username === username)
     expect(user).toBeDefined()
-    // We cannot check the password directly as it should be hashed
   })
 
   it("allows admin to delete a user's account", async () => {
     const username = "doomed-user"
 
-    // Seed user (simulated)
-    // Create dummy user file in tempDir/users/
-    // ... logic to create user ...
+    createLocalUser({ password: "some-password", username })
 
-    await deleteLocalUser(username)
+    const deleted = deleteLocalUser(username)
+    expect(deleted).toBe(true)
 
     const users = await listLocalUsers()
     expect(users.find((u) => u.username === username)).toBeUndefined()

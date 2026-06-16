@@ -132,6 +132,25 @@ export function verifyLocalUserPassword(username: string, password: string) {
   return publicUser(user)
 }
 
+export function adminUpdateLocalUserPassword(username: string, newPassword: string) {
+  const normalized = normalizeOwner(username)
+  if (newPassword.length < 8) return { error: "password_too_short", ok: false }
+  if (normalized === BUILTIN_ADMIN_USERNAME) return { error: "admin_forbidden", ok: false }
+
+  const users = readUserRecords()
+  const index = users.findIndex((item) => item.username === normalized)
+  if (index === -1) return { error: "not_found", ok: false }
+
+  const { hash, salt } = hashPassword(newPassword)
+  users[index] = {
+    ...users[index],
+    passwordHash: hash,
+    salt,
+  }
+  writeUserRecords(users)
+  return { ok: true }
+}
+
 export function updateLocalUserPassword(
   username: string,
   currentPassword: string,
