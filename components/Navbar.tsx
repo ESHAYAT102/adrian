@@ -44,7 +44,7 @@ type NavbarProps = {
 }
 
 export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
-  const { isAdmin, user } = useAuth()
+  const { user } = useAuth()
   const { resolvedTheme, theme } = useThemeTransition()
   const [isCommandOpen, setIsCommandOpen] = useState(false)
   const [commandInitialValue, setCommandInitialValue] = useState("")

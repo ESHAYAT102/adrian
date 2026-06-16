@@ -243,7 +243,7 @@ function toProfile(username: string, viewer?: SessionUser | null): GitHubProfile
   const localUser = getLocalUserByUsername(username)
   return {
     avatar_url: localUser?.avatarUrl ?? null,
-    bio: viewer?.login === username ? "Your Adrian account" : "Adrian user",
+    bio: null,
     blog: null,
     company: null,
     created_at: localUser?.createdAt ?? repos.at(-1)?.createdAt ?? new Date(0).toISOString(),

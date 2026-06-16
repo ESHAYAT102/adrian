@@ -81,9 +81,7 @@ export default function NewRepositoryForm({
 
     if (!response.ok || !data.repository) {
       const message =
-        data.error === "forbidden"
-          ? "Your Adrian account cannot create repositories right now."
-          : data.error === "validation_failed"
+        data.error === "validation_failed"
             ? "Adrian rejected this repository setup. The name may already exist in your account, or one of the values is invalid."
             : "Repository creation failed. Please try again."
       setError(message)
