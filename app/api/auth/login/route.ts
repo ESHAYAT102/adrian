@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
 
-import { assignAdmin, isAdminAssigned } from "@/lib/admin-store"
 import { toSessionUser, verifyLocalUserPassword } from "@/lib/local-users"
 import { encodeSessionCookie, SESSION_COOKIE_NAME, sessionCookieOptions } from "@/lib/session"
 
@@ -26,10 +25,6 @@ export async function POST(request: NextRequest) {
     return wantsJson
       ? NextResponse.json({ error: message }, { status: 401 })
       : redirectWithAuthError(request, callbackUrl, message)
-  }
-
-  if (!isAdminAssigned()) {
-    assignAdmin(user.username)
   }
 
   const response = wantsJson

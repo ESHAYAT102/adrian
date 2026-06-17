@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 
+import { assignAdmin, isAdminAssigned } from "@/lib/admin-store"
 import { createLocalUser, toSessionUser } from "@/lib/local-users"
 import { encodeSessionCookie, SESSION_COOKIE_NAME, sessionCookieOptions } from "@/lib/session"
 
@@ -26,6 +27,11 @@ export async function POST(request: NextRequest) {
       password: String(body.password || ""),
       username: String(body.username || ""),
     })
+
+    if (!isAdminAssigned()) {
+      assignAdmin(user.username)
+    }
+
     const sessionUser = toSessionUser(user)
     const response = wantsJson
       ? NextResponse.json({ user: sessionUser }, { status: 201 })

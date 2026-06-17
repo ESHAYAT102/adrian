@@ -118,7 +118,11 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
                   Open in new tab
                 </ContextMenuItem>
               </A>
-              <A href="https://github.com/ESHAYAT102/adrian/" target="_blank" rel="noreferrer">
+              <A
+                href="https://github.com/ESHAYAT102/adrian/"
+                target="_blank"
+                rel="noreferrer"
+              >
                 <ContextMenuItem>
                   <BookMarked />
                   Open repository
@@ -140,7 +144,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
       <div className="flex items-center gap-2">
         <BrowserContextMenu triggerClassName="inline-flex">
           <Button
-            className="rounded-full mr-2"
+            className="mr-2 rounded-full"
             variant="ghost"
             title="Open command palette"
             onClick={() => {
@@ -188,11 +192,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                className="rounded-full"
-                variant="ghost"
-                size="icon"
-              >
+              <Button className="rounded-full" variant="ghost" size="icon">
                 <Avatar size="sm">
                   <AvatarImage
                     src={user.image ?? undefined}
