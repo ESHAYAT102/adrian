@@ -10,6 +10,7 @@ import {
 } from "react"
 import {
   Building2,
+  FolderGit2,
   LinkIcon,
   MapPin,
   SquareArrowOutUpRight,
@@ -296,6 +297,7 @@ export default function ProfileShowcase({
 
             <div className="flex flex-wrap items-center gap-2 text-base text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
+                <FolderGit2 className="size-4" />
                 <strong className="font-semibold text-foreground">
                   {repositories.length.toLocaleString("en")}
                 </strong>
