@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import { headers } from "next/headers"
+import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
 import BrowserContextMenu from "@/components/BrowserContextMenu"
@@ -53,6 +54,10 @@ export async function generateMetadata({
     return { title: username }
   }
 
+  if (!profile) {
+    return { title: `${username} — Not found` }
+  }
+
   const title = profile.name
     ? `${profile.name} (${profile.login})`
     : profile.login
@@ -67,6 +72,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
   const proto = h.get("x-forwarded-proto") ?? undefined
   const profileData = await getGitHubProfilePageData(username, sessionUser, host, proto)
+  if (!profileData.profile) notFound()
   const profileGitHubUrl = `/${encodeURIComponent(username)}`
 
   if (profileData.rateLimited) {

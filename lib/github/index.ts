@@ -366,8 +366,10 @@ export async function getTrendingRepositories(_user?: SessionUser | null) {
 
 export async function getGitHubProfilePageData(username: string, user?: SessionUser | null, host?: string, proto?: string) {
   if (user) ensureLocalUserFromSession(user)
+  const localUser = getLocalUserByUsername(username)
   const repositories = listLocalRepositories().filter((repo) => repo.owner === username).map((repo) => toRepository(repo, user, host, proto))
-  return { profile: toProfile(username, user), rateLimited: false, rateLimitReset: null, repositories }
+  const exists = localUser !== null || repositories.length > 0
+  return { profile: exists ? toProfile(username, user) : null, rateLimited: false, rateLimitReset: null, repositories }
 }
 
 export async function getGitHubRepository(owner: string, repo: string, user?: SessionUser | null, host?: string, proto?: string) {
@@ -385,9 +387,9 @@ function isTextPath(path: string) {
 function isImagePath(path: string) { return /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(path) }
 function isVideoPath(path: string) { return /\.(mp4|webm|mov)$/i.test(path) }
 
-export async function getGitHubRepositoryPageData(owner: string, repo: string, user?: SessionUser | null, path = "", branch?: string, host?: string, proto?: string): Promise<GitHubRepositoryPageData> {
+export async function getGitHubRepositoryPageData(owner: string, repo: string, user?: SessionUser | null, path = "", branch?: string, host?: string, proto?: string): Promise<GitHubRepositoryPageData | null> {
   const local = getLocalRepository(owner, repo)
-  if (!local) throw new Error("Repository not found")
+  if (!local) return null
   const repository = toRepository(local, user, host, proto)
   const contents = getRepositoryContents(owner, repo, path, branch).map((item) => ({
     content: item.content,

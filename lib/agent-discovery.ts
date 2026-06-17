@@ -147,6 +147,7 @@ Adrian could not load local profile data.
   }
 
   const { profile, repositories } = profileData
+  if (!profile) return `# ${username}\n\nUser not found.\n`
   const rows = repositories
     .slice(0, 100)
     .map(
