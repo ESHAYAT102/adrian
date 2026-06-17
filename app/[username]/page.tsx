@@ -41,10 +41,12 @@ export async function generateMetadata({
   const sessionUser = await getSessionUser()
   const h = await headers()
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
+  const proto = h.get("x-forwarded-proto") ?? undefined
   const { profile, rateLimited } = await getGitHubProfilePageData(
     username,
     sessionUser,
-    host
+    host,
+    proto
   )
 
   if (rateLimited) {
@@ -63,7 +65,8 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const sessionUser = await getSessionUser()
   const h = await headers()
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
-  const profileData = await getGitHubProfilePageData(username, sessionUser, host)
+  const proto = h.get("x-forwarded-proto") ?? undefined
+  const profileData = await getGitHubProfilePageData(username, sessionUser, host, proto)
   const profileGitHubUrl = `/${encodeURIComponent(username)}`
 
   if (profileData.rateLimited) {

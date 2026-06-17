@@ -104,7 +104,8 @@ export async function generateMetadata({
   const sessionUser = await getSessionUser()
   const h = await headers()
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
-  const { repository } = await getGitHubRepository(username, repo, sessionUser, host)
+  const proto = h.get("x-forwarded-proto") ?? undefined
+  const { repository } = await getGitHubRepository(username, repo, sessionUser, host, proto)
 
   if (!repository) {
     return { title: `${username}/${repo}` }
@@ -203,6 +204,7 @@ export default async function RepositoryPage({
   const sessionUser = await getSessionUser()
   const h = await headers()
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
+  const proto = h.get("x-forwarded-proto") ?? undefined
   const commitRef = commit?.trim() || undefined
   const isAuthenticated = Boolean(sessionUser?.accessToken)
   const requestedGitHubUrl = buildRequestedGitHubUrl({
@@ -228,7 +230,8 @@ export default async function RepositoryPage({
         sessionUser,
         path,
         commitRef ?? branch,
-        host
+        host,
+        proto
       ),
       getGitHubRepositoryBranches(username, repo, sessionUser),
     ]

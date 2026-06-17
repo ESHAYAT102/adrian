@@ -202,13 +202,20 @@ function hashId(value: string) {
   return Math.abs(hash)
 }
 
-function siteUrl(host?: string) {
+function isLocalHost(host: string) {
+  return host.includes("localhost") || host.includes("127.0.0.1") || host.includes("::1")
+}
+
+function siteUrl(host?: string, proto?: string) {
   if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
-  if (host) return `http://${host}`
+  if (host) {
+    const p = proto ?? (isLocalHost(host) ? "http" : "https")
+    return `${p}://${host}`
+  }
   return "http://localhost:8390"
 }
 
-function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], viewer?: SessionUser | null, host?: string): GitHubRepository {
+function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], viewer?: SessionUser | null, host?: string, proto?: string): GitHubRepository {
   const fullName = `${repo.owner}/${repo.name}`
   const languages = getRepositoryLanguages(repo.owner, repo.name)
   const language = Object.entries(languages).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
@@ -224,7 +231,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
   const forkCount = listForkedRepositories(repo.owner, repo.name).length
   return {
     archived: repo.archived ?? false,
-    clone_url: `${siteUrl(host)}/${fullName}.git`,
+    clone_url: `${siteUrl(host, proto)}/${fullName}.git`,
     created_at: repo.createdAt,
     default_branch: repo.defaultBranch,
     description: repo.description,
@@ -250,7 +257,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
     subscribers_count: 0,
     topics: repo.topics ?? [],
     updated_at: repo.updatedAt,
-    url: `${siteUrl(host)}/${fullName}`,
+    url: `${siteUrl(host, proto)}/${fullName}`,
   }
 }
 
@@ -357,15 +364,15 @@ export async function getTrendingRepositories(_user?: SessionUser | null) {
   return listLocalRepositories().slice(0, 12).map((repo) => toRepository(repo, _user))
 }
 
-export async function getGitHubProfilePageData(username: string, user?: SessionUser | null, host?: string) {
+export async function getGitHubProfilePageData(username: string, user?: SessionUser | null, host?: string, proto?: string) {
   if (user) ensureLocalUserFromSession(user)
-  const repositories = listLocalRepositories().filter((repo) => repo.owner === username).map((repo) => toRepository(repo, user, host))
+  const repositories = listLocalRepositories().filter((repo) => repo.owner === username).map((repo) => toRepository(repo, user, host, proto))
   return { profile: toProfile(username, user), rateLimited: false, rateLimitReset: null, repositories }
 }
 
-export async function getGitHubRepository(owner: string, repo: string, user?: SessionUser | null, host?: string) {
+export async function getGitHubRepository(owner: string, repo: string, user?: SessionUser | null, host?: string, proto?: string) {
   const local = getLocalRepository(owner, repo)
-  return { repository: local ? toRepository(local, user, host) : null, rateLimited: false }
+  return { repository: local ? toRepository(local, user, host, proto) : null, rateLimited: false }
 }
 
 export async function getGitHubRepositoryLanguages(owner: string, repo: string, _user?: SessionUser | null) {
@@ -378,10 +385,10 @@ function isTextPath(path: string) {
 function isImagePath(path: string) { return /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(path) }
 function isVideoPath(path: string) { return /\.(mp4|webm|mov)$/i.test(path) }
 
-export async function getGitHubRepositoryPageData(owner: string, repo: string, user?: SessionUser | null, path = "", branch?: string, host?: string): Promise<GitHubRepositoryPageData> {
+export async function getGitHubRepositoryPageData(owner: string, repo: string, user?: SessionUser | null, path = "", branch?: string, host?: string, proto?: string): Promise<GitHubRepositoryPageData> {
   const local = getLocalRepository(owner, repo)
   if (!local) throw new Error("Repository not found")
-  const repository = toRepository(local, user, host)
+  const repository = toRepository(local, user, host, proto)
   const contents = getRepositoryContents(owner, repo, path, branch).map((item) => ({
     content: item.content,
     download_url: null,

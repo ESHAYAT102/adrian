@@ -10,6 +10,7 @@ import { isAdminUser } from "@/lib/admin"
 import { getSessionUser } from "@/lib/session"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import VersionCheckBanner from "@/components/VersionCheckBanner"
 import { cn } from "@/lib/utils"
 import { UiSoundEffects } from "@/components/UiSoundEffects"
 
@@ -80,6 +81,7 @@ export default async function RootLayout({
           <ThemeProvider>
             <AppKeyboardShortcuts />
             <UiSoundEffects />
+            <VersionCheckBanner />
             {children}
             <Toaster richColors position="bottom-right" />
           </ThemeProvider>

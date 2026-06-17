@@ -140,6 +140,7 @@ function runGitHttpBackend({
     },
     input: body,
     maxBuffer: 1024 * 1024 * 128,
+    timeout: 60_000,
   })
 
   return parseGitHttpResponse(output)
