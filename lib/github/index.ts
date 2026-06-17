@@ -202,8 +202,10 @@ function hashId(value: string) {
   return Math.abs(hash)
 }
 
-function siteUrl() {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:8390").replace(/\/$/, "")
+function siteUrl(host?: string) {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, "")
+  if (host) return `http://${host}`
+  return "http://localhost:8390"
 }
 
 function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], viewer?: SessionUser | null): GitHubRepository {
