@@ -12,7 +12,6 @@ import {
   Building2,
   LinkIcon,
   MapPin,
-  SquareArrowOutUpRight,
 } from "lucide-react"
 
 import A from "@/components/A"
@@ -244,15 +243,6 @@ export default function ProfileShowcase({
                 <h1 className="text-3xl font-semibold tracking-tight">
                   {profile.name || profile.login}
                 </h1>
-                <A
-                  href={profile.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-md text-muted-foreground transition hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-                  aria-label={`Open ${profile.login} in Adrian`}
-                >
-                  <SquareArrowOutUpRight className="size-5" />
-                </A>
               </div>
               <p className="mt-1 text-base text-muted-foreground">
                 @{profile.login}
