@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { Suspense } from "react"
 
 import BrowserContextMenu from "@/components/BrowserContextMenu"
@@ -38,9 +39,12 @@ export async function generateMetadata({
 }: ProfilePageProps): Promise<Metadata> {
   const { username } = await params
   const sessionUser = await getSessionUser()
+  const h = await headers()
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
   const { profile, rateLimited } = await getGitHubProfilePageData(
     username,
-    sessionUser
+    sessionUser,
+    host
   )
 
   if (rateLimited) {
@@ -57,7 +61,9 @@ export async function generateMetadata({
 export default async function ProfilePage({ params }: ProfilePageProps) {
   const { username } = await params
   const sessionUser = await getSessionUser()
-  const profileData = await getGitHubProfilePageData(username, sessionUser)
+  const h = await headers()
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
+  const profileData = await getGitHubProfilePageData(username, sessionUser, host)
   const profileGitHubUrl = `/${encodeURIComponent(username)}`
 
   if (profileData.rateLimited) {

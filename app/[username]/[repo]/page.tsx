@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import {
   ChevronRight,
@@ -101,7 +102,9 @@ export async function generateMetadata({
 }: RepositoryPageProps): Promise<Metadata> {
   const { username, repo } = await params
   const sessionUser = await getSessionUser()
-  const { repository } = await getGitHubRepository(username, repo, sessionUser)
+  const h = await headers()
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
+  const { repository } = await getGitHubRepository(username, repo, sessionUser, host)
 
   if (!repository) {
     return { title: `${username}/${repo}` }
@@ -198,6 +201,8 @@ export default async function RepositoryPage({
   const { branch, commit, discussion, path, tab, issue, pr } =
     await searchParams
   const sessionUser = await getSessionUser()
+  const h = await headers()
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? undefined
   const commitRef = commit?.trim() || undefined
   const isAuthenticated = Boolean(sessionUser?.accessToken)
   const requestedGitHubUrl = buildRequestedGitHubUrl({
@@ -222,7 +227,8 @@ export default async function RepositoryPage({
         repo,
         sessionUser,
         path,
-        commitRef ?? branch
+        commitRef ?? branch,
+        host
       ),
       getGitHubRepositoryBranches(username, repo, sessionUser),
     ]

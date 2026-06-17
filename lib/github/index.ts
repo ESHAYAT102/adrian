@@ -208,7 +208,7 @@ function siteUrl(host?: string) {
   return "http://localhost:8390"
 }
 
-function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], viewer?: SessionUser | null): GitHubRepository {
+function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], viewer?: SessionUser | null, host?: string): GitHubRepository {
   const fullName = `${repo.owner}/${repo.name}`
   const languages = getRepositoryLanguages(repo.owner, repo.name)
   const language = Object.entries(languages).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
@@ -224,7 +224,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
   const forkCount = listForkedRepositories(repo.owner, repo.name).length
   return {
     archived: repo.archived ?? false,
-    clone_url: `${siteUrl()}/${fullName}.git`,
+    clone_url: `${siteUrl(host)}/${fullName}.git`,
     created_at: repo.createdAt,
     default_branch: repo.defaultBranch,
     description: repo.description,
@@ -250,7 +250,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
     subscribers_count: 0,
     topics: repo.topics ?? [],
     updated_at: repo.updatedAt,
-    url: `${siteUrl()}/${fullName}`,
+    url: `${siteUrl(host)}/${fullName}`,
   }
 }
 
@@ -357,15 +357,15 @@ export async function getTrendingRepositories(_user?: SessionUser | null) {
   return listLocalRepositories().slice(0, 12).map((repo) => toRepository(repo, _user))
 }
 
-export async function getGitHubProfilePageData(username: string, user?: SessionUser | null) {
+export async function getGitHubProfilePageData(username: string, user?: SessionUser | null, host?: string) {
   if (user) ensureLocalUserFromSession(user)
-  const repositories = listLocalRepositories().filter((repo) => repo.owner === username).map((repo) => toRepository(repo, user))
+  const repositories = listLocalRepositories().filter((repo) => repo.owner === username).map((repo) => toRepository(repo, user, host))
   return { profile: toProfile(username, user), rateLimited: false, rateLimitReset: null, repositories }
 }
 
-export async function getGitHubRepository(owner: string, repo: string, user?: SessionUser | null) {
+export async function getGitHubRepository(owner: string, repo: string, user?: SessionUser | null, host?: string) {
   const local = getLocalRepository(owner, repo)
-  return { repository: local ? toRepository(local, user) : null, rateLimited: false }
+  return { repository: local ? toRepository(local, user, host) : null, rateLimited: false }
 }
 
 export async function getGitHubRepositoryLanguages(owner: string, repo: string, _user?: SessionUser | null) {
@@ -378,10 +378,10 @@ function isTextPath(path: string) {
 function isImagePath(path: string) { return /\.(png|jpe?g|gif|webp|svg|ico)$/i.test(path) }
 function isVideoPath(path: string) { return /\.(mp4|webm|mov)$/i.test(path) }
 
-export async function getGitHubRepositoryPageData(owner: string, repo: string, user?: SessionUser | null, path = "", branch?: string): Promise<GitHubRepositoryPageData> {
+export async function getGitHubRepositoryPageData(owner: string, repo: string, user?: SessionUser | null, path = "", branch?: string, host?: string): Promise<GitHubRepositoryPageData> {
   const local = getLocalRepository(owner, repo)
   if (!local) throw new Error("Repository not found")
-  const repository = toRepository(local, user)
+  const repository = toRepository(local, user, host)
   const contents = getRepositoryContents(owner, repo, path, branch).map((item) => ({
     content: item.content,
     download_url: null,
