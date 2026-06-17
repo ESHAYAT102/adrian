@@ -1,4 +1,4 @@
-import { extname } from "node:path"
+import { dirname, extname } from "node:path"
 
 import type { SessionUser } from "@/lib/session"
 import { getAdminUsername } from "@/lib/admin-store"
@@ -415,7 +415,8 @@ export async function getGitHubRepositoryPageData(owner: string, repo: string, u
   const local = getLocalRepository(owner, repo)
   if (!local) return null
   const repository = toRepository(local, user, host, proto)
-  const contents = getRepositoryContents(owner, repo, path, branch).map((item) => ({
+  const parentDir = path ? (dirname(path) === "." ? "" : dirname(path)) : path
+  const contents = getRepositoryContents(owner, repo, parentDir, branch).map((item) => ({
     content: item.content,
     download_url: null,
     encoding: item.encoding,
