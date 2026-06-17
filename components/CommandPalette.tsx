@@ -411,27 +411,7 @@ export default function CommandPalette({
         },
         keywords: ["refresh"],
       },
-      {
-        id: "open-in-github",
-        label: "Open in Adrian",
-        icon: (
-          <SquareArrowOutUpRight className="size-4 text-muted-foreground" />
-        ),
-        onSelect: () => {
-          markCommandUsed("open-in-github")
-          const path = window.location.pathname
-          const segments = path.split("/").filter(Boolean)
-          const githubUrl =
-            segments.length >= 2
-              ? `/${segments[0]}/${segments[1]}`
-              : segments.length === 1
-                ? `/${segments[0]}`
-                : ""
-          onOpenChange(false)
-          window.open(githubUrl, "_blank", "noopener,noreferrer")
-        },
-        keywords: ["github", "open", "repo", "profile"],
-      },
+
       {
         id: "copy-current-url",
         label: "Copy current URL",
@@ -546,14 +526,7 @@ export default function CommandPalette({
         onSelect: () => setValue("/repos "),
         requiresArgument: false,
       },
-      {
-        id: "slash-github",
-        command: "/github",
-        description: "Open in Adrian",
-        placeholder: "/github owner/repo",
-        onSelect: () => setValue("/github "),
-        requiresArgument: false,
-      },
+
       {
         id: "slash-settings",
         command: "/settings",
