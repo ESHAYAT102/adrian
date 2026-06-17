@@ -37,7 +37,7 @@ export default function RepositoryEngagementActions({
   const [forkCount, setForkCount] = useState(initialForkCount)
   const [isTogglingStar, setIsTogglingStar] = useState(false)
   const [isForking, setIsForking] = useState(false)
-  const [forkDialogOpen, setForkDialogOpen] = useState(false)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [forkName, setForkName] = useState(repo)
 
   const handleStarToggle = async () => {
@@ -75,22 +75,23 @@ export default function RepositoryEngagementActions({
     setIsTogglingStar(false)
   }
 
-  const handleForkDialogOpen = () => {
+  const handleFork = () => {
     setForkName(repo)
-    setForkDialogOpen(true)
+    setIsDialogOpen(true)
   }
 
-  const handleFork = async () => {
+  const handleForkSubmit = async () => {
     if (isForking) return
 
     setIsForking(true)
+    setIsDialogOpen(false)
 
     const response = await fetch("/api/repository-actions", {
       body: JSON.stringify({
         action: "fork",
-        forkName,
         owner,
         repo,
+        forkName,
       }),
       headers: {
         "Content-Type": "application/json",
@@ -100,84 +101,74 @@ export default function RepositoryEngagementActions({
 
     if (response.ok) {
       setForkCount((current) => current + 1)
-      setForkDialogOpen(false)
-      toast.success("Repository forked successfully")
+      toast.success("Fork started on GitHub")
     } else {
-      const data = await response.json().catch(() => ({}))
-      toast.error(data.error ?? "Could not fork repository")
+      toast.error("Could not fork repository")
     }
 
     setIsForking(false)
   }
 
   return (
-    <div className="grid w-full grid-cols-1 gap-2 min-[440px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap">
-      <Button
-        type="button"
-        variant={isStarred ? "secondary" : "outline"}
-        className="w-full rounded-xl sm:w-auto"
-        onClick={handleStarToggle}
-        data-repo-action-star
-      >
-        <Star className={isStarred ? "fill-current" : undefined} />
-        Star
-        <span className="text-muted-foreground">{starCount}</span>
-      </Button>
+    <>
+      <div className="grid w-full grid-cols-1 gap-2 min-[440px]:grid-cols-2 sm:flex sm:w-auto sm:flex-wrap">
+        <Button
+          type="button"
+          variant={isStarred ? "secondary" : "outline"}
+          className="w-full rounded-xl sm:w-auto"
+          onClick={handleStarToggle}
+          data-repo-action-star
+        >
+          <Star className={isStarred ? "fill-current" : undefined} />
+          Star
+          <span className="text-muted-foreground">{starCount}</span>
+        </Button>
 
-      {canFork ? (
-        <>
+        {canFork ? (
           <Button
             type="button"
             variant="outline"
             className="w-full rounded-xl sm:w-auto"
-            onClick={handleForkDialogOpen}
+            disabled={isForking}
+            onClick={handleFork}
             data-repo-action-fork
           >
             <GitFork />
             Fork
             <span className="text-muted-foreground">{forkCount}</span>
           </Button>
+        ) : null}
+      </div>
 
-          <Dialog open={forkDialogOpen} onOpenChange={setForkDialogOpen}>
-            <DialogContent className="max-w-md rounded-2xl">
-              <DialogHeader>
-                <DialogTitle>Fork repository</DialogTitle>
-                <DialogDescription>
-                  This will fork <span className="font-medium text-foreground">{owner}/{repo}</span> into your account.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground" htmlFor="fork-name">
-                  Repository name
-                </label>
-                <Input
-                  id="fork-name"
-                  value={forkName}
-                  onChange={(e) => setForkName(e.target.value)}
-                  placeholder="Enter repository name"
-                  autoFocus
-                />
-              </div>
-
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setForkDialogOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleFork}
-                  disabled={isForking || !forkName.trim()}
-                >
-                  {isForking ? "Forking..." : "Fork"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </>
-      ) : null}
-    </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Fork repository</DialogTitle>
+            <DialogDescription>
+              Enter a name for the forked repository.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            value={forkName}
+            onChange={(e) => setForkName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleForkSubmit()
+              }
+            }}
+            placeholder="Repository name"
+            autoFocus
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleForkSubmit} disabled={!forkName.trim()}>
+              Fork
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
