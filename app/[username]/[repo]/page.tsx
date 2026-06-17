@@ -465,6 +465,17 @@ export default async function RepositoryPage({
                       Fork
                     </Badge>
                   ) : null}
+                  {repository.fork && repository.parent ? (
+                    <span className="text-xs text-muted-foreground">
+                      Forked from{" "}
+                      <A
+                        href={`/${repository.parent.full_name}`}
+                        className="font-medium hover:text-foreground"
+                      >
+                        {repository.parent.full_name}
+                      </A>
+                    </span>
+                  ) : null}
                   {repository.archived ? (
                     <Badge variant="outline">Archived</Badge>
                   ) : null}

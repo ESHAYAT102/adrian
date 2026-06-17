@@ -7,6 +7,7 @@ import { getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-user
 import {
   createLocalRepository,
   deleteLocalRepository,
+  forkLocalRepository,
   getLocalRepository,
   getRepositoryCommits,
   getRepositoryContents,
@@ -15,8 +16,10 @@ import {
   createLocalRepositoryRelease,
   getRepositoryReadme,
   isLocalRepositoryStarredByUser,
+  listForkedRepositories,
   listRepositoryReleases,
   listLocalRepositories,
+  normalizeRepositoryName,
   starLocalRepositoryForUser,
   unstarLocalRepositoryForUser,
   updateLocalRepositoryMetadata,
@@ -126,6 +129,7 @@ export type GitHubRepository = {
   open_issues_count?: number
   owner: { avatar_url?: string | null; login: string }
   permissions?: { admin?: boolean; maintain?: boolean; push?: boolean }
+  parent?: { full_name: string; name: string; owner: { login: string } } | null
   private: boolean
   pushed_at: string
   size?: number
@@ -207,14 +211,23 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
   const languages = getRepositoryLanguages(repo.owner, repo.name)
   const language = Object.entries(languages).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null
   const canPush = viewer?.login === repo.owner || isAdminUser(viewer)
+  const forkedFrom = repo.forkedFrom
+  const parent = forkedFrom
+    ? {
+        full_name: `${forkedFrom.owner}/${forkedFrom.name}`,
+        name: forkedFrom.name,
+        owner: { login: forkedFrom.owner },
+      }
+    : null
+  const forkCount = listForkedRepositories(repo.owner, repo.name).length
   return {
     archived: repo.archived ?? false,
     clone_url: `${siteUrl()}/${fullName}.git`,
     created_at: repo.createdAt,
     default_branch: repo.defaultBranch,
     description: repo.description,
-    fork: false,
-    forks_count: 0,
+    fork: repo.fork ?? false,
+    forks_count: forkCount,
     full_name: fullName,
     has_discussions: false,
     has_wiki: false,
@@ -226,6 +239,7 @@ function toRepository(repo: ReturnType<typeof listLocalRepositories>[number], vi
     name: repo.name,
     open_issues_count: 0,
     owner: { avatar_url: null, login: repo.owner },
+    parent,
     permissions: { admin: canPush, maintain: canPush, push: canPush },
     private: repo.private ?? false,
     pushed_at: repo.updatedAt,
@@ -242,7 +256,7 @@ function toProfile(username: string, viewer?: SessionUser | null): GitHubProfile
   const repos = listLocalRepositories().filter((repo) => repo.owner === username)
   const localUser = getLocalUserByUsername(username)
   return {
-    avatar_url: localUser?.avatarUrl ?? null,
+    avatar_url: localUser?.avatarUrl ?? (viewer?.login === username ? viewer.image : null) ?? null,
     bio: null,
     blog: null,
     company: null,
@@ -322,7 +336,15 @@ export async function starGitHubRepository(user: SessionUser, owner: string, rep
 export async function unstarGitHubRepository(user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> {
   return { repository: toRepository(unstarLocalRepositoryForUser(owner, repo, user.login), user), status: 200 }
 }
-export async function forkGitHubRepository(_user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> { return getGitHubRepository(owner, repo, _user).then((r) => ({ repository: r.repository, status: 200 })) }
+export async function forkGitHubRepository(_user: SessionUser, owner: string, repo: string, forkName?: string): Promise<RepositoryResult> {
+  const newName = forkName ? normalizeRepositoryName(forkName) : normalizeRepositoryName(repo)
+  try {
+    const forked = forkLocalRepository(owner, repo, _user.login, newName)
+    return { repository: toRepository(forked, _user), status: 200 }
+  } catch (error) {
+    return { repository: null, error: error instanceof Error ? error.message : "fork_failed", status: 400 }
+  }
+}
 
 export async function getGitHubViewerRepositories(user: SessionUser) {
   return listLocalRepositories().filter((repo) => repo.owner === user.login).map((repo) => toRepository(repo, user))

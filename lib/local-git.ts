@@ -14,6 +14,8 @@ export type LocalRepositoryMetadata = {
   createdAt: string
   defaultBranch: string
   description: string | null
+  fork?: boolean
+  forkedFrom?: { owner: string; name: string } | null
   homepage?: string | null
   name: string
   owner: string
@@ -333,6 +335,73 @@ export function updateLocalRepositoryMetadata(owner: string, name: string, input
     private: input.private ?? repo.private,
     updatedAt: new Date().toISOString(),
   }))
+}
+
+export function forkLocalRepository(
+  owner: string,
+  name: string,
+  newOwner: string,
+  newName: string
+) {
+  const source = getLocalRepository(owner, name)
+  if (!source) throw new Error("Source repository not found")
+
+  const normalizedNewOwner = normalizeOwner(newOwner)
+  const normalizedNewName = normalizeRepositoryName(newName)
+
+  if (getLocalRepository(normalizedNewOwner, normalizedNewName)) {
+    throw new Error("A repository with this name already exists")
+  }
+
+  ensureLocalGitStorage()
+  const now = new Date().toISOString()
+  const paths = getRepositoryPaths(normalizedNewOwner, normalizedNewName)
+  mkdirSync(paths.workTreePath, { recursive: true })
+  mkdirSync(paths.barePath, { recursive: true })
+
+  runGit(["init", "-b", source.defaultBranch], paths.workTreePath)
+  runGit(["config", "user.name", GIT_AUTHOR], paths.workTreePath)
+  runGit(["config", "user.email", GIT_EMAIL], paths.workTreePath)
+  runGit(["init", "--bare", "-b", source.defaultBranch], paths.barePath)
+  runGit(["config", "http.receivepack", "true"], paths.barePath)
+  runGit(["remote", "add", "origin", paths.barePath], paths.workTreePath)
+  runGit(["remote", "add", "upstream", source.barePath], paths.workTreePath)
+  runGit(["fetch", "upstream"], paths.workTreePath)
+  runGit(["checkout", source.defaultBranch], paths.workTreePath)
+  runGit(["push", "-u", "origin", `${source.defaultBranch}:${source.defaultBranch}`], paths.workTreePath)
+  runGit(["remote", "remove", "upstream"], paths.workTreePath)
+  runGit(["update-server-info"], paths.barePath)
+
+  const metadata: LocalRepositoryMetadata = {
+    archived: false,
+    createdAt: now,
+    defaultBranch: source.defaultBranch,
+    description: source.description,
+    fork: true,
+    forkedFrom: { owner: normalizeOwner(owner), name: normalizeRepositoryName(name) },
+    homepage: source.homepage,
+    name: normalizedNewName,
+    owner: normalizedNewOwner,
+    private: source.private,
+    size: 0,
+    starredBy: [],
+    topics: [],
+    updatedAt: now,
+  }
+  writeMetadata([...readMetadata(), metadata])
+
+  return toHandle(metadata)
+}
+
+export function listForkedRepositories(owner: string, name: string) {
+  const normalizedOwner = normalizeOwner(owner)
+  const normalizedName = normalizeRepositoryName(name)
+  return readMetadata().filter(
+    (repo) =>
+      repo.fork &&
+      repo.forkedFrom?.owner === normalizedOwner &&
+      repo.forkedFrom?.name === normalizedName
+  )
 }
 
 export function deleteLocalRepository(owner: string, name: string) {
