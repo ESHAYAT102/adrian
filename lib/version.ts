@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
-export const GITHUB_REPO = "ESHAYAT102/adrian"
-export const UPSTREAM_API = `https://api.github.com/repos/${GITHUB_REPO}`
+export { GITHUB_REPO } from "@/lib/version-shared"
+import { UPSTREAM_API } from "@/lib/version-shared"
 
 export function getDeployedSha(): string | null {
   if (process.env.SOURCE_VERSION) return process.env.SOURCE_VERSION

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react"
 
 import A from "@/components/A"
 import { Button } from "@/components/ui/button"
-import { GITHUB_REPO } from "@/lib/version"
+import { GITHUB_REPO } from "@/lib/version-shared"
 
 type VersionCheckState = {
   updateAvailable: boolean
