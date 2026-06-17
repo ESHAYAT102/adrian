@@ -121,7 +121,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const [unreadNotifications, starredRepositories] = sessionUser
     ? await Promise.all([
         getGitHubNotifications(sessionUser, { unreadOnly: true }),
-        getGitHubStarredRepositories(username, sessionUser),
+        getGitHubStarredRepositories(username, sessionUser, host, proto),
       ])
     : [undefined, []]
 

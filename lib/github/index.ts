@@ -538,4 +538,9 @@ export async function getGitHubActivity(username: string, user?: SessionUser | n
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 }
 
-export async function getGitHubStarredRepositories(_username?: string, _user?: SessionUser | null): Promise<GitHubRepository[]> { return [] }
+export async function getGitHubStarredRepositories(username?: string, user?: SessionUser | null, host?: string, proto?: string): Promise<GitHubRepository[]> {
+  if (!username) return []
+  return listLocalRepositories()
+    .filter((repo) => repo.starredBy?.includes(username))
+    .map((repo) => toRepository(repo, user, host, proto))
+}
