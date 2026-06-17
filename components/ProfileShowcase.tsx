@@ -10,11 +10,9 @@ import {
 } from "react"
 import {
   Building2,
-  FolderGit2,
   LinkIcon,
   MapPin,
   SquareArrowOutUpRight,
-  Star,
 } from "lucide-react"
 
 import A from "@/components/A"
@@ -297,7 +295,6 @@ export default function ProfileShowcase({
 
             <div className="flex flex-wrap items-center gap-2 text-base text-muted-foreground">
               <span className="inline-flex items-center gap-1.5">
-                <FolderGit2 className="size-4" />
                 <strong className="font-semibold text-foreground">
                   {repositories.length.toLocaleString("en")}
                 </strong>
@@ -305,7 +302,6 @@ export default function ProfileShowcase({
               </span>
               <span className="text-border">·</span>
               <span className="inline-flex items-center gap-1.5">
-                <Star className="size-4" />
                 <strong className="font-semibold text-foreground">
                   {totalStars.toLocaleString("en")}
                 </strong>
