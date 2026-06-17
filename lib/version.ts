@@ -1,11 +1,12 @@
+import { existsSync, readFileSync } from "node:fs"
+import { join } from "node:path"
+
 export const GITHUB_REPO = "ESHAYAT102/adrian"
 export const UPSTREAM_API = `https://api.github.com/repos/${GITHUB_REPO}`
 
 export function getDeployedSha(): string | null {
   if (process.env.SOURCE_VERSION) return process.env.SOURCE_VERSION
   try {
-    const { readFileSync, existsSync } = require("node:fs") as typeof import("node:fs")
-    const { join } = require("node:path") as typeof import("node:path")
     const gitHead = join(process.cwd(), ".git", "HEAD")
     if (!existsSync(gitHead)) return null
     const ref = readFileSync(gitHead, "utf8").trim()

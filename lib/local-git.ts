@@ -91,8 +91,16 @@ function refExists(cwd: string, ref: string) {
   }
 }
 
+let _dataDirWarned = false
+
 export function getDataDir() {
-  return process.env.ADRIAN_DATA_DIR || join(process.cwd(), ".adrian-data")
+  const dir = process.env.ADRIAN_DATA_DIR || join(process.cwd(), "..", ".adrian-data")
+  if (!process.env.ADRIAN_DATA_DIR && !_dataDirWarned) {
+    _dataDirWarned = true
+    console.warn(`[adrian] ADRIAN_DATA_DIR not set. Data directory: ${dir}`)
+    console.warn("[adrian] Set ADRIAN_DATA_DIR to a path outside your project to ensure data survives git operations and container rebuilds.")
+  }
+  return dir
 }
 
 function getReposDir() {

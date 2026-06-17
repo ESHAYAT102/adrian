@@ -1,8 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 
+import { getDataDir } from "@/lib/local-git"
+
 function getAdminPath() {
-  const dir = process.env.ADRIAN_DATA_DIR || join(process.cwd(), ".adrian-data")
+  const dir = getDataDir()
   mkdirSync(dir, { recursive: true })
   return join(dir, "admin.json")
 }
