@@ -3,7 +3,7 @@ import { extname } from "node:path"
 import type { SessionUser } from "@/lib/session"
 import { getAdminUsername } from "@/lib/admin-store"
 import { isAdminUser as isAdminUserPure } from "@/lib/admin"
-import { getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-users"
+import { ensureLocalUserFromSession, getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-users"
 import {
   createLocalRepository,
   deleteLocalRepository,
@@ -274,6 +274,7 @@ function toProfile(username: string, viewer?: SessionUser | null): GitHubProfile
 
 export async function getGitHubViewerSettings(user: SessionUser | null): Promise<GitHubViewerSettings> {
   const login = user?.login ?? "guest"
+  if (user) ensureLocalUserFromSession(user)
   const localUser = user ? getLocalUserByUsername(user.login) : null
   return {
     avatarUrl: localUser?.avatarUrl ?? user?.image ?? null,
@@ -355,6 +356,7 @@ export async function getTrendingRepositories(_user?: SessionUser | null) {
 }
 
 export async function getGitHubProfilePageData(username: string, user?: SessionUser | null) {
+  if (user) ensureLocalUserFromSession(user)
   const repositories = listLocalRepositories().filter((repo) => repo.owner === username).map((repo) => toRepository(repo, user))
   return { profile: toProfile(username, user), rateLimited: false, rateLimitReset: null, repositories }
 }

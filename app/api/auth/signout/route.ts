@@ -5,9 +5,7 @@ import { SESSION_COOKIE_NAME, sessionCookieOptions } from "@/lib/session"
 export const runtime = "nodejs"
 
 export async function GET(request: NextRequest) {
-  const callbackUrl = request.nextUrl.searchParams.get("callbackUrl") || "/"
-  const url = new URL(callbackUrl, request.nextUrl.origin)
-  const response = NextResponse.redirect(url)
+  const response = NextResponse.redirect(new URL("/", request.url))
 
   response.cookies.set(SESSION_COOKIE_NAME, "", {
     ...sessionCookieOptions,

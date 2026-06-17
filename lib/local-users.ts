@@ -10,6 +10,7 @@ import {
   validateUsername,
 } from "@/lib/local-git"
 import { isAdminAssigned } from "@/lib/admin-store"
+import type { SessionUser } from "@/lib/session"
 
 export type LocalUserRecord = {
   avatarUrl?: string | null
@@ -196,6 +197,17 @@ export function deleteLocalUser(username: string) {
 
   writeUserRecords(nextUsers)
   return true
+}
+
+export function ensureLocalUserFromSession(sessionUser: SessionUser) {
+  if (getLocalUserByUsername(sessionUser.login)) return
+
+  createLocalUser({
+    displayName: sessionUser.name,
+    email: sessionUser.email,
+    password: randomBytes(16).toString("hex"),
+    username: sessionUser.login,
+  })
 }
 
 export function toSessionUser(user: LocalUser) {
