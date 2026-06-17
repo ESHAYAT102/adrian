@@ -286,7 +286,9 @@ export default function ProfileRepositories({
               aria-label="Sort repositories"
               className={cn(
                 "border-border bg-background text-foreground",
-                compact ? "h-8 rounded-xl px-3 text-xs" : "h-10 rounded-2xl px-4 text-sm"
+                compact
+                  ? "h-8 rounded-xl px-3 text-xs"
+                  : "h-10 rounded-2xl px-4 text-sm"
               )}
             >
               <SelectValue />
@@ -316,7 +318,7 @@ export default function ProfileRepositories({
         {isRemoteLoading ? " " : null}
         Showing {filteredRepositories.length}{" "}
         {filteredRepositories.length === 1 ? "repository" : "repositories"}
-        {visibilityFilter === "starred" ? " from starred repos" : ""}
+        {visibilityFilter === "starred" ? "" : ""}
       </p>
 
       <Card

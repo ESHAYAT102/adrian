@@ -32,7 +32,9 @@ export default async function Page({ searchParams }: HomePageProps) {
         isAdmin ? Promise.resolve([]) : getGitHubActivity(user.login, user),
       ])
     : [null, await getTrendingRepositories(user), []]
-  const adminUsers = isAdmin ? listLocalUsers().filter((u) => u.username !== user?.login) : []
+  const adminUsers = isAdmin
+    ? listLocalUsers().filter((u) => u.username !== user?.login)
+    : []
   const adminRepositories = isAdmin ? listLocalRepositories() : []
   const adminStats = isAdmin ? buildAdminDashboardStats() : null
 
@@ -46,13 +48,16 @@ export default async function Page({ searchParams }: HomePageProps) {
               {isAdmin ? (
                 <div className="space-y-8">
                   {adminStats ? <AdminDashboard stats={adminStats} /> : null}
-                  <AdminUsersPanel users={adminUsers} repositories={adminRepositories} />
+                  <AdminUsersPanel
+                    users={adminUsers}
+                    repositories={adminRepositories}
+                  />
                 </div>
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <h1 className="text-3xl font-semibold tracking-tight">
-                      Your Activity
+                      Your activity
                     </h1>
                     <p className="text-sm text-muted-foreground">
                       Recent commits, issues, and pull requests
