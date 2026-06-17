@@ -13,7 +13,7 @@ import {
   LinkIcon,
   MapPin,
   SquareArrowOutUpRight,
-  Users,
+  Star,
 } from "lucide-react"
 
 import A from "@/components/A"
@@ -192,6 +192,10 @@ export default function ProfileShowcase({
     () => buildLanguageDistribution(repositories),
     [repositories]
   )
+  const totalStars = useMemo(
+    () => repositories.reduce((sum, r) => sum + (r.stargazers_count ?? 0), 0),
+    [repositories]
+  )
 
   useEffect(() => {
     if (!isAvatarOpen) return
@@ -290,19 +294,20 @@ export default function ProfileShowcase({
               ) : null}
             </div>
 
-            <div className="flex flex-wrap items-center gap-5 text-base text-muted-foreground">
-              <span className="inline-flex items-center gap-2">
-                <Users className="size-4" />
+            <div className="flex flex-wrap items-center gap-2 text-base text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
                 <strong className="font-semibold text-foreground">
-                  {(profile.followers ?? 0).toLocaleString("en")}
+                  {repositories.length.toLocaleString("en")}
                 </strong>
-                followers
+                {repositories.length === 1 ? "repository" : "repositories"}
               </span>
-              <span>
+              <span className="text-border">·</span>
+              <span className="inline-flex items-center gap-1.5">
+                <Star className="size-4" />
                 <strong className="font-semibold text-foreground">
-                  {(profile.following ?? 0).toLocaleString("en")}
-                </strong>{" "}
-                following
+                  {totalStars.toLocaleString("en")}
+                </strong>
+                {totalStars === 1 ? "star" : "total stars"}
               </span>
             </div>
           </div>
