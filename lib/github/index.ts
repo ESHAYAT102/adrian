@@ -4,6 +4,7 @@ import type { SessionUser } from "@/lib/session"
 import { getAdminUsername } from "@/lib/admin-store"
 import { isAdminUser as isAdminUserPure } from "@/lib/admin"
 import { ensureLocalUserFromSession, getLocalUserByUsername, updateLocalUserProfile } from "@/lib/local-users"
+import { addNotification, getUserNotifications, markNotificationAsRead, removeNotification } from "@/lib/local-notifications"
 import {
   createLocalRepository,
   deleteLocalRepository,
@@ -341,7 +342,19 @@ export async function isGitHubRepositoryStarred(user?: SessionUser | null, owner
   return isLocalRepositoryStarredByUser(owner, repo, user.login)
 }
 export async function starGitHubRepository(user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> {
-  return { repository: toRepository(starLocalRepositoryForUser(owner, repo, user.login), user), status: 200 }
+  const result = toRepository(starLocalRepositoryForUser(owner, repo, user.login), user)
+  if (owner !== user.login) {
+    const fullName = `${owner}/${repo}`
+    addNotification(owner, {
+      reason: "star",
+      repositoryFullName: fullName,
+      repositoryUrl: `/${fullName}`,
+      subjectTitle: `${user.login} starred ${fullName}`,
+      subjectType: "Repository",
+      url: `/${fullName}`,
+    })
+  }
+  return { repository: result, status: 200 }
 }
 export async function unstarGitHubRepository(user: SessionUser, owner: string, repo: string): Promise<RepositoryResult> {
   return { repository: toRepository(unstarLocalRepositoryForUser(owner, repo, user.login), user), status: 200 }
@@ -350,6 +363,17 @@ export async function forkGitHubRepository(_user: SessionUser, owner: string, re
   const newName = forkName ? normalizeRepositoryName(forkName) : normalizeRepositoryName(repo)
   try {
     const forked = forkLocalRepository(owner, repo, _user.login, newName)
+    if (owner !== _user.login) {
+      const fullName = `${owner}/${repo}`
+      addNotification(owner, {
+        reason: "fork",
+        repositoryFullName: fullName,
+        repositoryUrl: `/${fullName}`,
+        subjectTitle: `${_user.login} forked ${fullName}`,
+        subjectType: "Repository",
+        url: `/${fullName}`,
+      })
+    }
     return { repository: toRepository(forked, _user), status: 200 }
   } catch (error) {
     return { repository: null, error: error instanceof Error ? error.message : "fork_failed", status: 400 }
@@ -518,10 +542,20 @@ export async function createGitHubRepositoryRelease(
 }
 export async function getGitHubRepositoryDiscussions(_owner?: string, _repo?: string, _user?: SessionUser | null): Promise<GitHubRepositoryDiscussion[]> { return [] }
 export async function getGitHubRepositoryDiscussionCount(_owner?: string, _repo?: string, _user?: SessionUser | null) { return 0 }
-export async function getGitHubNotifications(_user?: SessionUser | null, _options?: { unreadOnly?: boolean }): Promise<GitHubNotification[]> { return [] }
-export async function markGitHubNotificationAsRead(_user?: SessionUser | null, _threadId?: string) { return { ok: true, status: 200 } }
-export async function markGitHubNotificationAsDone(_user?: SessionUser | null, _threadId?: string) { return { ok: true, status: 200 } }
-export async function unsubscribeFromGitHubNotification(_user?: SessionUser | null, _threadId?: string) { return { ok: true, status: 200 } }
+export async function getGitHubNotifications(user?: SessionUser | null, options?: { unreadOnly?: boolean }): Promise<GitHubNotification[]> {
+  if (!user?.login) return []
+  return getUserNotifications(user.login, options?.unreadOnly)
+}
+export async function markGitHubNotificationAsRead(user?: SessionUser | null, threadId?: string) {
+  if (!user?.login || !threadId) return { ok: true, status: 200 }
+  return markNotificationAsRead(user.login, threadId)
+}
+export async function markGitHubNotificationAsDone(user?: SessionUser | null, threadId?: string) {
+  return removeNotification(user?.login, threadId)
+}
+export async function unsubscribeFromGitHubNotification(user?: SessionUser | null, threadId?: string) {
+  return removeNotification(user?.login, threadId)
+}
 
 export async function getGitHubActivity(username: string, user?: SessionUser | null): Promise<ProfileActivityItem[]> {
   return listLocalRepositories()
