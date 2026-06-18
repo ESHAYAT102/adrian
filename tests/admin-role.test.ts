@@ -51,7 +51,7 @@ describe("admin role behavior", () => {
 
     expect(homePage).toContain("isAdminSessionUser")
     expect(homePage).toContain("AdminUsersPanel")
-    expect(homePage).toContain("<TrendingRepositories repositories={trending} />")
+    expect(homePage).toContain("TrendingRepositories repositories={allRepositories}")
     expect(adminUsers).toContain("User accounts")
     expect(adminUsers).toContain("repositories")
     expect(adminUsers).not.toContain("admin")

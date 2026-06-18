@@ -260,34 +260,32 @@ export default async function RepositoryPage({
       : null
 
     return (
-      <BrowserContextMenu triggerClassName="block min-h-screen w-full">
-        <div className="min-h-screen bg-background text-foreground">
-          <Navbar initialUnreadNotifications={[]} />
-          <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-4 px-4 pt-24 pb-10 md:px-8">
-            <Empty className="w-full">
-              <EmptyHeader>
-                <EmptyTitle className="text-2xl">Rate limit reached</EmptyTitle>
-                <EmptyDescription>
-                  Adrian could not load local repository data.{" "}
-                  {rateLimitTime
-                    ? `Try again after ${rateLimitTime}.`
-                    : "Try again in a few minutes."}
-                </EmptyDescription>
-              </EmptyHeader>
-              <EmptyContent>
-                <Button asChild>
-                  <A href={requestedGitHubUrl}>Open in Adrian</A>
-                </Button>
-              </EmptyContent>
-            </Empty>
-            {!sessionUser && (
+      <div className="min-h-screen bg-background text-foreground">
+        <Navbar initialUnreadNotifications={[]} />
+        <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-4 px-4 pt-24 pb-10 md:px-8">
+          <Empty className="w-full">
+            <EmptyHeader>
+              <EmptyTitle className="text-2xl">Rate limit reached</EmptyTitle>
+              <EmptyDescription>
+                Adrian could not load local repository data.{" "}
+                {rateLimitTime
+                  ? `Try again after ${rateLimitTime}.`
+                  : "Try again in a few minutes."}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
               <Button asChild>
-                <A href="/">Login to Adrian</A>
+                <A href={requestedGitHubUrl}>Open in Adrian</A>
               </Button>
-            )}
-          </div>
+            </EmptyContent>
+          </Empty>
+          {!sessionUser && (
+            <Button asChild>
+              <A href="/">Login to Adrian</A>
+            </Button>
+          )}
         </div>
-      </BrowserContextMenu>
+      </div>
     )
   }
 
@@ -318,18 +316,7 @@ export default async function RepositoryPage({
             : "code"
     : "code"
 
-  const [
-    commits,
-    commitCount,
-    discussions,
-    discussionCount,
-    issues,
-    issueCount,
-    pullRequests,
-    pullRequestCount,
-    releases,
-    repositoryLanguages,
-  ] = await Promise.all([
+  const [commitsData, countData, discussions, discussionCount, issues, issueCount, pullRequests, pullRequestCount, releases, repositoryLanguages] = await Promise.all([
     getGitHubRepositoryCommits(username, repo, sessionUser, resolvedBranch),
     getGitHubRepositoryCommitCount(
       username,
@@ -346,6 +333,9 @@ export default async function RepositoryPage({
     getGitHubRepositoryReleases(username, repo, sessionUser),
     getGitHubRepositoryLanguages(username, repo, sessionUser),
   ])
+  const [commitsResult, countResult] = [commitsData, countData]
+  const commits = commitsResult
+  const commitCount = countResult
   const latestRelease = releases[0] ?? null
   const canEditRepository = canManageRepository && !isCommitRef
   const isOwnedEmptyRepository = canManageRepository && contents.length === 0
@@ -366,62 +356,61 @@ export default async function RepositoryPage({
     : null
 
   return (
-    <BrowserContextMenu triggerClassName="block min-h-screen w-full">
-      <div className="min-h-screen bg-background text-foreground">
-        <Navbar initialUnreadNotifications={unreadNotifications} />
-        <RepoKeyboardShortcuts enabled />
-        <main className="mx-auto w-full max-w-7xl px-4 pt-22 pb-8 sm:pt-24 sm:pb-10 md:px-8">
-          <div className="space-y-5 sm:space-y-6">
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                  <h1 className="flex min-w-0 flex-wrap items-center text-xl font-semibold tracking-tight break-words sm:text-2xl md:text-3xl">
-                    <BrowserContextMenu
-                      triggerClassName="inline-flex"
-                      menuChildren={
-                        <A
-                          href={ownerGitHubUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <ContextMenuItem>
-                            <SquareArrowOutUpRight />
-                            Open in Adrian
-                          </ContextMenuItem>
-                        </A>
-                      }
-                    >
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar initialUnreadNotifications={unreadNotifications} />
+      <RepoKeyboardShortcuts enabled />
+      <main className="mx-auto w-full max-w-7xl px-4 pt-22 pb-8 sm:pt-24 sm:pb-10 md:px-8">
+        <div className="space-y-5 sm:space-y-6">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <h1 className="flex min-w-0 flex-wrap items-center text-xl font-semibold tracking-tight break-words sm:text-2xl md:text-3xl">
+                  <BrowserContextMenu
+                    triggerClassName="inline-flex"
+                    menuChildren={
                       <A
-                        href={`/${repository.owner.login}`}
-                        className="transition hover:text-muted-foreground"
+                        href={ownerGitHubUrl}
+                        target="_blank"
+                        rel="noreferrer"
                       >
-                        {repository.owner.login}
+                        <ContextMenuItem>
+                          <SquareArrowOutUpRight />
+                          Open in Adrian
+                        </ContextMenuItem>
                       </A>
-                    </BrowserContextMenu>
-                    <span className="px-1 text-muted-foreground">/</span>
-                    <BrowserContextMenu
-                      triggerClassName="inline-flex"
-                      menuChildren={
-                        <A
-                          href={repositoryGitHubUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <ContextMenuItem>
-                            <SquareArrowOutUpRight />
-                            Open in Adrian
-                          </ContextMenuItem>
-                        </A>
-                      }
+                    }
+                  >
+                    <A
+                      href={`/${repository.owner.login}`}
+                      className="transition hover:text-muted-foreground"
                     >
+                      {repository.owner.login}
+                    </A>
+                  </BrowserContextMenu>
+                  <span className="px-1 text-muted-foreground">/</span>
+                  <BrowserContextMenu
+                    triggerClassName="inline-flex"
+                    menuChildren={
                       <A
-                        href={`/${repository.owner.login}/${repository.name}`}
-                        className="transition hover:text-muted-foreground"
+                        href={repositoryGitHubUrl}
+                        target="_blank"
+                        rel="noreferrer"
                       >
-                        {repository.name}
+                        <ContextMenuItem>
+                          <SquareArrowOutUpRight />
+                          Open in Adrian
+                        </ContextMenuItem>
                       </A>
-                    </BrowserContextMenu>
-                  </h1>
+                    }
+                  >
+                    <A
+                      href={`/${repository.owner.login}/${repository.name}`}
+                      className="transition hover:text-muted-foreground"
+                    >
+                      {repository.name}
+                    </A>
+                  </BrowserContextMenu>
+                </h1>
                   <Badge variant="outline">
                     {repository.private ? (
                       <EyeOff className="size-3.5" />
@@ -881,8 +870,7 @@ export default async function RepositoryPage({
               }
             />
           </div>
-        </main>
-      </div>
-    </BrowserContextMenu>
+      </main>
+    </div>
   )
 }

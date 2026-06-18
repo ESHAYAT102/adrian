@@ -7,6 +7,10 @@ export default function AppKeyboardShortcuts() {
   const router = useRouter()
 
   useEffect(() => {
+    if (typeof navigator !== "undefined" && /Firefox|Zen/i.test(navigator.userAgent)) {
+      return
+    }
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.repeat) return
       if (event.altKey || event.shiftKey) return

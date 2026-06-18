@@ -67,7 +67,6 @@ export default function AdminDashboard({ stats }: AdminDashboardProps) {
           </p>
         </div>
         <div className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
-          <span>Dashboard date range</span>
           <Select
             value={activeFilter}
             onValueChange={(value) => setActiveFilter(value as AdminDashboardFilterId)}

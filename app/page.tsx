@@ -1,16 +1,17 @@
-import BrowserContextMenu from "@/components/BrowserContextMenu"
 import Navbar from "@/components/Navbar"
 import AdminDashboard from "@/components/AdminDashboard"
 import AdminUsersPanel from "@/components/AdminUsersPanel"
 import {
+  getAllRepositories,
   getGitHubActivity,
   getGitHubNotifications,
-  getTrendingRepositories,
 } from "@/lib/github"
+import { headers } from "next/headers"
 import { listLocalRepositories } from "@/lib/local-git"
 import { listLocalUsers } from "@/lib/local-users"
 import { buildAdminDashboardStats } from "@/lib/admin-dashboard"
 import { getSessionUser, isAdminSessionUser } from "@/lib/session"
+import { isFirefoxLikeUserAgent } from "@/lib/browser"
 
 import HomeActivity from "@/components/HomeActivity"
 import TrendingRepositories from "@/components/TrendingRepositories"
@@ -22,16 +23,19 @@ type HomePageProps = {
 
 export default async function Page({ searchParams }: HomePageProps) {
   await searchParams
+  const requestHeaders = await headers()
+  const userAgent = requestHeaders.get("user-agent")
+  const disableBrowserExtras = isFirefoxLikeUserAgent(userAgent)
   const user = await getSessionUser()
   const isAdmin = isAdminSessionUser(user)
 
-  const [unreadNotifications, trending, activity] = user
+  const [unreadNotifications, allRepositories, activity] = user
     ? await Promise.all([
         getGitHubNotifications(user, { unreadOnly: true }),
-        getTrendingRepositories(user),
+        getAllRepositories(user),
         isAdmin ? Promise.resolve([]) : getGitHubActivity(user.login, user),
       ])
-    : [null, await getTrendingRepositories(user), []]
+    : [null, [], []]
   const adminUsers = isAdmin
     ? listLocalUsers().filter((u) => u.username !== user?.login)
     : []
@@ -39,45 +43,48 @@ export default async function Page({ searchParams }: HomePageProps) {
   const adminStats = isAdmin ? buildAdminDashboardStats() : null
 
   return (
-    <BrowserContextMenu triggerClassName="block min-h-screen w-full">
-      <div className="min-h-screen bg-background text-foreground">
-        <Navbar initialUnreadNotifications={unreadNotifications ?? []} />
-        <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pt-24 pb-10 md:px-8">
-          {user ? (
-            <>
-              {isAdmin ? (
-                <div className="space-y-8">
-                  {adminStats ? <AdminDashboard stats={adminStats} /> : null}
-                  <AdminUsersPanel
-                    users={adminUsers}
-                    repositories={adminRepositories}
-                  />
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <h1 className="text-3xl font-semibold tracking-tight">
-                      Your activity
-                    </h1>
-                    <p className="text-sm text-muted-foreground">
-                      Recent commits, issues, and pull requests
-                    </p>
-                  </div>
-                  <HomeActivity activity={activity} />
-                </div>
-              )}
-
-              <div className="space-y-6">
-                <TrendingRepositories repositories={trending} />
+    <div className="min-h-screen bg-background text-foreground">
+      <Navbar
+        disableBrowserInteractions={disableBrowserExtras}
+        initialUnreadNotifications={unreadNotifications ?? []}
+      />
+      <main className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pt-24 pb-10 md:px-8">
+        {user ? (
+          <>
+            {isAdmin ? (
+              <div className="space-y-8">
+                {adminStats ? <AdminDashboard stats={adminStats} /> : null}
+                <AdminUsersPanel
+                  users={adminUsers}
+                  repositories={adminRepositories}
+                />
               </div>
-            </>
-          ) : (
-            <div className="flex min-h-[60vh] items-center justify-center">
-              <LoginForm />
+            ) : (
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-semibold tracking-tight">
+                    Your activity
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    Recent commits, issues, and pull requests
+                  </p>
+                </div>
+                <HomeActivity activity={activity} />
+              </div>
+            )}
+
+            <div className="space-y-6">
+              {allRepositories.length > 0 ? (
+                <TrendingRepositories repositories={allRepositories} />
+              ) : null}
             </div>
-          )}
-        </main>
-      </div>
-    </BrowserContextMenu>
+          </>
+        ) : (
+          <div className="flex min-h-[60vh] items-center justify-center">
+            <LoginForm />
+          </div>
+        )}
+      </main>
+    </div>
   )
 }

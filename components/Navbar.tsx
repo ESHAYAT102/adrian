@@ -40,10 +40,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import Image from "./Image"
 
 type NavbarProps = {
+  disableBrowserInteractions?: boolean
   initialUnreadNotifications?: GitHubNotification[]
 }
 
-export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
+export default function Page({
+  disableBrowserInteractions = false,
+  initialUnreadNotifications = [],
+}: NavbarProps) {
   const { user } = useAuth()
   const { resolvedTheme, theme } = useThemeTransition()
   const [isCommandOpen, setIsCommandOpen] = useState(false)
@@ -78,6 +82,8 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
   }
 
   useEffect(() => {
+    if (disableBrowserInteractions) return
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey) return
 
@@ -98,7 +104,7 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
 
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
+  }, [disableBrowserInteractions])
 
   const currentTheme = ((theme === "system" ? resolvedTheme : theme) ??
     "light") as ThemeId
@@ -109,70 +115,114 @@ export default function Page({ initialUnreadNotifications = [] }: NavbarProps) {
     <nav className="fixed z-50 flex w-full items-center justify-between border-b border-foreground/10 bg-background/60 px-4 py-4 md:px-8 supports-backdrop-filter:backdrop-blur">
       <CommandPalette
         open={isCommandOpen}
+        disableGlobalHotkeys={disableBrowserInteractions}
         onOpenChange={handleCommandOpenChange}
         onOpenNotificationsChange={setIsNotificationsOpen}
         initialValue={commandInitialValue}
       />
       <div className="flex items-center">
-        <BrowserContextMenu
-          triggerClassName="flex items-center justify-center"
-          menuChildren={
-            <>
-              <A href="/" target="_blank">
-                <ContextMenuItem>
-                  <SquareArrowOutUpRight />
-                  Open in new tab
-                </ContextMenuItem>
-              </A>
-              <A
-                href="https://github.com/ESHAYAT102/adrian/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <ContextMenuItem>
-                  <BookMarked />
-                  Open repository
-                </ContextMenuItem>
-              </A>
-              <ContextMenuItem onClick={handleCopyUrl}>
-                <Copy />
-                Copy URL
-              </ContextMenuItem>
-            </>
-          }
-        >
-          <Link href="/" className="flex items-center gap-2 font-bold">
+        {disableBrowserInteractions ? (
+          <Link
+            href="/"
+            prefetch={false}
+            className="flex items-center gap-2 font-bold"
+          >
             <Image className="h-6" src="/favicon.ico" alt="Logo"></Image>
             <span>Adrian</span>
           </Link>
-        </BrowserContextMenu>
+        ) : (
+          <BrowserContextMenu
+            triggerClassName="flex items-center justify-center"
+            menuChildren={
+              <>
+                <A href="/" target="_blank">
+                  <ContextMenuItem>
+                    <SquareArrowOutUpRight />
+                    Open in new tab
+                  </ContextMenuItem>
+                </A>
+                <A
+                  href="https://github.com/ESHAYAT102/adrian/"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <ContextMenuItem>
+                    <BookMarked />
+                    Open repository
+                  </ContextMenuItem>
+                </A>
+                <ContextMenuItem onClick={handleCopyUrl}>
+                  <Copy />
+                  Copy URL
+                </ContextMenuItem>
+              </>
+            }
+          >
+            <Link
+              href="/"
+              prefetch={false}
+              className="flex items-center gap-2 font-bold"
+            >
+              <Image className="h-6" src="/favicon.ico" alt="Logo"></Image>
+              <span>Adrian</span>
+            </Link>
+          </BrowserContextMenu>
+        )}
       </div>
       <div className="flex items-center gap-2">
-        <BrowserContextMenu triggerClassName="inline-flex">
-          <Button
-            className="mr-2 rounded-full"
-            variant="ghost"
-            title="Open command palette"
-            onClick={() => {
-              setCommandInitialValue("")
-              setIsCommandOpen(true)
-            }}
-          >
-            <Command />
-          </Button>
-          {user ? (
+        {disableBrowserInteractions ? (
+          <>
             <Button
-              asChild
-              className="hidden cursor-default rounded-full sm:inline-flex"
+              className="mr-2 rounded-full"
               variant="ghost"
-              title="Create new repository"
+              title="Open command palette"
+              onClick={() => {
+                setCommandInitialValue("")
+                setIsCommandOpen(true)
+              }}
             >
-              <A href={newRepositoryUrl}>
-                <Plus />
-              </A>
+              <Command />
             </Button>
-          ) : null}
-        </BrowserContextMenu>
+            {user ? (
+              <Button
+                asChild
+                className="hidden cursor-default rounded-full sm:inline-flex"
+                variant="ghost"
+                title="Create new repository"
+              >
+                <A href={newRepositoryUrl}>
+                  <Plus />
+                </A>
+              </Button>
+            ) : null}
+          </>
+        ) : (
+          <BrowserContextMenu triggerClassName="inline-flex">
+            <Button
+              className="mr-2 rounded-full"
+              variant="ghost"
+              title="Open command palette"
+              onClick={() => {
+                setCommandInitialValue("")
+                setIsCommandOpen(true)
+              }}
+            >
+              <Command />
+            </Button>
+            {user ? (
+              <Button
+                asChild
+                className="hidden cursor-default rounded-full sm:inline-flex"
+                variant="ghost"
+                title="Create new repository"
+              >
+                <A href={newRepositoryUrl}>
+                  <Plus />
+                </A>
+              </Button>
+            ) : null}
+          </BrowserContextMenu>
+        )}
         <div className="items-center">
           {user && (
             <>

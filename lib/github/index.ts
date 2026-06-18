@@ -155,6 +155,7 @@ export type GitHubRepositoryContent = {
   type: "dir" | "file" | "submodule" | "symlink"
 }
 export type GitHubRepositoryReadme = { content: string; html_url: string; name: string; path: string; sha: string }
+export type GitHubRepositoryReadmeData = { htmlUrl: string; markdown: string; name: string; path: string; sha: string }
 export type GitHubRepositoryPageData = {
   contents: GitHubRepositoryContent[]
   rateLimited?: boolean
@@ -384,8 +385,28 @@ export async function getGitHubViewerRepositories(user: SessionUser) {
   return listLocalRepositories().filter((repo) => repo.owner === user.login).map((repo) => toRepository(repo, user))
 }
 
+export async function getTrendingRepositoriesPage(_user?: SessionUser | null, options?: { page?: number; perPage?: number }) {
+  const page = Math.max(1, options?.page ?? 1)
+  const perPage = Math.min(100, Math.max(1, options?.perPage ?? 12))
+  const start = (page - 1) * perPage
+  return listLocalRepositories().slice(start, start + perPage).map((repo) => toRepository(repo, _user))
+}
+
 export async function getTrendingRepositories(_user?: SessionUser | null) {
-  return listLocalRepositories().slice(0, 12).map((repo) => toRepository(repo, _user))
+  return getTrendingRepositoriesPage(_user, { page: 1, perPage: 12 })
+}
+
+export async function getAllRepositories(user?: SessionUser | null): Promise<GitHubRepository[]> {
+  return listLocalRepositories().map((repo) => toRepository(repo, user))
+}
+
+export async function getGitHubProfileSummary(username: string, user?: SessionUser | null, host?: string, proto?: string) {
+  return toProfile(username, user)
+}
+
+export async function getGitHubRepositoryReadme(owner: string, repo: string, _user?: SessionUser | null, branch?: string) {
+  const readme = getRepositoryReadme(owner, repo, branch)
+  return readme ? { htmlUrl: `/${owner}/${repo}/blob/${readme.path}`, markdown: readme.content, name: readme.name, path: readme.path, sha: readme.sha } : null
 }
 
 export async function getGitHubProfilePageData(username: string, user?: SessionUser | null, host?: string, proto?: string) {
