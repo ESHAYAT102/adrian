@@ -2,8 +2,6 @@
 
 Adrian is the Xenon experience rebuilt on top of its own self-hosted Git system. It keeps the profile, repository browsing, command palette, file viewer/editor, and dashboard feel from Xenon, but removes the GitHub dependency: users create local Adrian accounts, repositories live on your own server, and clone endpoints are served by the app.
 
-See a demo [here](https://adrian.eshayat.com)
-
 ## Features
 
 - Local Adrian user accounts — no GitHub OAuth required
